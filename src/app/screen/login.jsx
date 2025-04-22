@@ -12,7 +12,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -111,7 +111,7 @@ const Login = () => {
 
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={signInWithEmail}
+            onPress={onLogin}
             disabled={loading}
           >
             <Text style={styles.loginButtonText}>
