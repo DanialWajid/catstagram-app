@@ -11,7 +11,9 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import PasswordMeter from "../../components/PasswordStrengthMeter"; // 🧩 Adjust path if needed
+import PasswordMeter from "../../components/PasswordStrengthMeter";
+import { useAuthStore } from "../../store/authStore";
+import { use } from "react";
 
 const Signup = ({ onSignup }) => {
   const [username, setUsername] = useState(""); // Added username
@@ -21,22 +23,26 @@ const Signup = ({ onSignup }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const { signup, error, isLoading } = useAuthStore();
   async function handleSignUp() {
-    if (!username || !email || !password || !confirmPassword) {
+    if (!username || !email || !password) {
       return Alert.alert("Error", "Please fill in all fields");
     }
-    if (password !== confirmPassword) {
-      return Alert.alert("Error", "Passwords do not match");
-    }
-    setLoading(true);
-    setTimeout(() => {
+
+    try {
+      setLoading(true);
+      await signup(email, password, username);
+
       Alert.alert(
         "Success",
         `Welcome, ${username}! Account created successfully!`
       );
-      setLoading(false);
       if (onSignup) onSignup();
-    }, 2000);
+    } catch (err) {
+      console.error("Signup error:", err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -125,12 +131,12 @@ const Signup = ({ onSignup }) => {
           </View>
 
           <TouchableOpacity
-            style={styles.loginButton}
             onPress={handleSignUp}
-            disabled={loading}
+            disabled={isLoading}
+            style={styles.loginButton}
           >
             <Text style={styles.loginButtonText}>
-              {loading ? "Creating..." : "Sign Up"}
+              {isLoading ? "Creating Account..." : "Sign Up"}
             </Text>
           </TouchableOpacity>
 

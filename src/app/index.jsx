@@ -26,10 +26,10 @@ const App = () => {
   return isLoggedIn ? (
     <Home onLogout={handleLogout} />
   ) : (
-    // <Signup />
+    <Signup />
     // <ForgetPassword />
     // <Verification />
-    <Login onLogin={handleLogin} />
+    // <Login onLogin={handleLogin} />
   );
 };
 
