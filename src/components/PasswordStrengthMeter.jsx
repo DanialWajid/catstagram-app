@@ -1,145 +1,125 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Check, X } from "lucide-react-native";
+
+const PasswordCriteria = ({ password }) => {
+  const criteria = [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "Contains lowercase letter", met: /[a-z]/.test(password) },
+    { label: "Contains a number", met: /\d/.test(password) },
+    { label: "Contains special character", met: /[^A-Za-z0-9]/.test(password) },
+  ];
+
+  return (
+    <View style={styles.criteriaContainer}>
+      {criteria.map((item) => (
+        <View key={item.label} style={styles.criteriaItem}>
+          {item.met ? (
+            <Check color="#10B981" size={16} />
+          ) : (
+            <X color="#9CA3AF" size={16} />
+          )}
+          <Text
+            style={[
+              styles.criteriaText,
+              { color: item.met ? "#10B981" : "#9CA3AF" },
+            ]}
+          >
+            {item.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const PasswordStrengthMeter = ({ password }) => {
-  const [strength, setStrength] = useState(0);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    calculateStrength(password);
-  }, [password]);
-
-  const calculateStrength = (password) => {
-    let strengthScore = 0;
-    let strengthMessage = "";
-
-    if (!password) {
-      setStrength(0);
-      setMessage("");
-      return;
-    }
-
-    // Length check
-    if (password.length >= 8) {
-      strengthScore += 1;
-    }
-
-    // Uppercase check
-    if (/[A-Z]/.test(password)) {
-      strengthScore += 1;
-    }
-
-    // Lowercase check
-    if (/[a-z]/.test(password)) {
-      strengthScore += 1;
-    }
-
-    // Number check
-    if (/\d/.test(password)) {
-      strengthScore += 1;
-    }
-
-    // Special character check
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      strengthScore += 1;
-    }
-
-    // Set message based on strength
-    switch (strengthScore) {
-      case 0:
-        strengthMessage = "Very Weak";
-        break;
-      case 1:
-        strengthMessage = "Weak";
-        break;
-      case 2:
-        strengthMessage = "Fair";
-        break;
-      case 3:
-        strengthMessage = "Good";
-        break;
-      case 4:
-        strengthMessage = "Strong";
-        break;
-      case 5:
-        strengthMessage = "Very Strong";
-        break;
-      default:
-        strengthMessage = "";
-    }
-
-    setStrength(strengthScore);
-    setMessage(strengthMessage);
+  const getStrength = (pass) => {
+    let strength = 0;
+    if (pass.length >= 8) strength++;
+    if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) strength++;
+    if (/\d/.test(pass)) strength++;
+    if (/[^a-zA-Z\d]/.test(pass)) strength++;
+    return strength;
   };
 
-  // Get color based on strength
-  const getColor = (index) => {
-    if (!password) return "#e5e7eb"; // Gray for empty
+  const strength = getStrength(password);
 
-    if (index <= strength) {
-      switch (strength) {
-        case 1:
-          return "#ef4444"; // Red for weak
-        case 2:
-          return "#f97316"; // Orange for fair
-        case 3:
-          return "#eab308"; // Yellow for good
-        case 4:
-          return "#22c55e"; // Green for strong
-        case 5:
-          return "#10b981"; // Emerald for very strong
-        default:
-          return "#e5e7eb";
-      }
-    }
+  const getStrengthText = (strength) => {
+    if (strength === 0) return "Very Weak";
+    if (strength === 1) return "Weak";
+    if (strength === 2) return "Fair";
+    if (strength === 3) return "Good";
+    return "Strong";
+  };
 
-    return "#e5e7eb"; // Gray for unfilled
+  const getStrengthColor = (strength) => {
+    return ["#DC2626", "#F87171", "#FBBF24", "#FACC15", "#10B981"][strength];
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.meterContainer}>
-        {[1, 2, 3, 4, 5].map((index) => (
+    <View>
+      <View style={styles.strengthHeader}>
+        <Text style={styles.strengthLabel}>Password strength</Text>
+        <Text style={styles.strengthText}>{getStrengthText(strength)}</Text>
+      </View>
+
+      <View style={styles.strengthBar}>
+        {[...Array(4)].map((_, index) => (
           <View
             key={index}
-            style={[styles.meterSegment, { backgroundColor: getColor(index) }]}
+            style={[
+              styles.strengthSegment,
+              {
+                backgroundColor:
+                  index < strength ? getStrengthColor(strength) : "#374151",
+              },
+            ]}
           />
         ))}
       </View>
-      {password && <Text style={styles.strengthText}>{message}</Text>}
-      <Text style={styles.requirementsText}>
-        Password must contain at least 8 characters, including uppercase,
-        lowercase, number and special character.
-      </Text>
+
+      <PasswordCriteria password={password} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  meterContainer: {
+  strengthHeader: {
     flexDirection: "row",
-    height: 8,
-    marginBottom: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  meterSegment: {
-    flex: 1,
-    height: "100%",
-    marginHorizontal: 2,
-    borderRadius: 4,
-  },
-  strengthText: {
-    fontSize: 14,
-    color: "#d1d5db",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
-  requirementsText: {
+  strengthLabel: {
     fontSize: 12,
-    color: "#9ca3af",
+    color: "#9CA3AF",
+  },
+  strengthText: {
+    fontSize: 12,
+    color: "#9CA3AF",
+  },
+  strengthBar: {
+    flexDirection: "row",
+    gap: 4,
+    marginBottom: 8,
+  },
+  strengthSegment: {
+    flex: 1,
+    height: 4,
+    borderRadius: 8,
+  },
+  criteriaContainer: {
+    marginTop: 8,
+    gap: 4,
+  },
+  criteriaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  criteriaText: {
+    fontSize: 12,
   },
 });
 

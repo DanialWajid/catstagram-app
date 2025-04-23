@@ -4,6 +4,9 @@ import { useState } from "react";
 import { registerRootComponent } from "expo";
 import Login from "./screen/login";
 import Home from "./screen/home";
+import Signup from "./screen/signup";
+import ForgetPassword from "./screen/forgetPassword";
+import Verification from "./screen/verification";
 
 const App = () => {
   // State to track whether user is logged in
@@ -23,6 +26,9 @@ const App = () => {
   return isLoggedIn ? (
     <Home onLogout={handleLogout} />
   ) : (
+    // <Signup />
+    // <ForgetPassword />
+    // <Verification />
     <Login onLogin={handleLogin} />
   );
 };
