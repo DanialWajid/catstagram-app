@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Mail, ArrowLeft } from "lucide-react-native";
@@ -28,11 +29,13 @@ const ForgotPasswordPage = () => {
     }
     try {
       const result = await forgotPassword(email);
-      setIsSubmitted(true);
-      Alert.alert(
-        "Success",
-        result.message || "Check your email for the reset link."
-      );
+      if (result.success) {
+        setIsSubmitted(true);
+        Alert.alert(
+          "Success",
+          result.message || "Check your email for the reset link."
+        );
+      }
     } catch (err) {
       Alert.alert("Error", err.message || "Something went wrong.");
     }

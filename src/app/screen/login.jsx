@@ -30,8 +30,12 @@ const Login = ({ onLogin }) => {
     try {
       setLoading(true);
       const data = await login(email, password);
-      Alert.alert("Success", data.message);
-      navigation.navigate("Home");
+      if (data.success) {
+        navigation.navigate("Home");
+        Alert.alert("Success", data.message);
+      } else {
+        Alert.alert("Invalid Credentials", data.message);
+      }
     } catch (error) {
       Alert.alert("Login Failed", error.message);
     } finally {
@@ -116,7 +120,7 @@ const Login = ({ onLogin }) => {
 
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
               <Text style={styles.signupLink}>Sign up</Text>
             </TouchableOpacity>
           </View>

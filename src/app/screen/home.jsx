@@ -1,28 +1,56 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useAuthStore } from "../../store/authStore";
+import { getUserInfo } from "../../store/AccStore"; // adjust path
+import { useAuthStore } from "../../store/authStore"; // adjust path
+import SideNav from "../../components/SideNav"; // adjust path
+import Navbar from "../../components/Navbar"; // adjust path
 
 const Home = ({ navigation }) => {
+  const [userInfo, setUserInfo] = useState(null);
   const { logout } = useAuthStore();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getUserInfo();
+      setUserInfo(user);
+    };
+    fetchUser();
+  }, []);
+
   const handleLogout = async () => {
-    console.log("method called");
-    await logout(); // Call the passed logout function
-    navigation.navigate("Login"); // Navigate to Login screen after logout
+    await logout();
+    navigation.navigate("Login");
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Home Screen</Text>
-      <Text style={styles.subtitle}>Welcome to the app!</Text>
+    <View style={styles.main}>
+      <Navbar />
+      <View style={styles.container}>
+        <Text style={styles.title}>Home Screen</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </TouchableOpacity>
+        {userInfo ? (
+          <Text style={styles.subtitle}>
+            Welcome, {userInfo.name || userInfo.email}!
+          </Text>
+        ) : (
+          <Text style={styles.subtitle}>Loading user info...</Text>
+        )}
+
+        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+          <Text style={styles.buttonText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      <SideNav user={userInfo} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  main: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
   container: {
     flex: 1,
     justifyContent: "center",

@@ -33,8 +33,13 @@ const Signup = ({ onSignup }) => {
 
     try {
       setLoading(true);
-      await signup(email, password, username);
-      navigation.navigate("Verification");
+      const data = await signup(email, password, username);
+      if (data.success) {
+        navigation.navigate("Verification");
+        Alert.alert("Success", data.message);
+      } else {
+        Alert.alert("Error Occurred", data.message);
+      }
       Alert.alert(
         "Success !",
         `Welcome, ${username}! Email Sent successfully!`
