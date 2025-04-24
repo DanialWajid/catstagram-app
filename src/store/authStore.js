@@ -155,39 +155,40 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  // Login function
   login: async (email, password) => {
-    set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/login`, {
-        email,
-        password,
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      const authHeader = response.headers["authorization"];
-      const token = authHeader?.split(" ")[1];
-      const user = response.data.user;
+      const data = await response.json();
 
-      if (token) {
-        await SecureStore.setItemAsync("token", token);
+      if (!response.ok) {
+        console.log("Login failed:", data.message);
+        throw new Error(data.message || "Login failed");
       }
-      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+
+      // Store token securely
+      await SecureStore.setItemAsync("token", data.token);
+      // Optionally save user data to AsyncStorage
+      await AsyncStorage.setItem("userInfo", JSON.stringify(data.user));
+
+      console.log("Login success: token stored");
 
       set({
-        user,
-        token,
+        user: data.user,
+        token: data.token,
         isAuthenticated: true,
-        isLoading: false,
       });
 
-      return true;
+      return { success: true };
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Invalid credentials";
-      set({
-        error: errorMsg,
-        isLoading: false,
-      });
-      throw new Error(errorMsg);
+      console.error("Login error:", error.message);
+      return { success: false, error: error.message };
     }
   },
 

@@ -11,31 +11,33 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "../../store/authStore";
+import { useNavigation } from "@react-navigation/native";
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState("");
+  const navigation = useNavigation();
+  const { login } = useAuthStore();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // New state for password visibility
 
-  async function signInWithEmail() {
-    setLoading(true);
-    // Simulating login action
-    setTimeout(() => {
-      Alert.alert("Success", "Logged in successfully!");
-      setLoading(false);
-    }, 2000);
-  }
+  const handleLogin = async () => {
+    if (!email || !password) {
+      return Alert.alert("Error", "Please enter both email and password");
+    }
 
-  async function signUpWithEmail() {
-    setLoading(true);
-    // Simulating sign-up action
-    setTimeout(() => {
-      Alert.alert("Success", "Account created successfully!");
+    try {
+      setLoading(true);
+      const data = await login(email, password);
+      Alert.alert("Success", data.message);
+      navigation.navigate("Home");
+    } catch (error) {
+      Alert.alert("Login Failed", error.message);
+    } finally {
       setLoading(false);
-    }, 2000);
-  }
-
+    }
+  };
   async function resetPassword() {
     if (!email) return Alert.alert("Error", "Please enter your email");
     setLoading(true);
@@ -111,17 +113,15 @@ const Login = ({ onLogin }) => {
 
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={onLogin}
+            onPress={handleLogin}
             disabled={loading}
           >
-            <Text style={styles.loginButtonText}>
-              {loading ? "Loading..." : "Login"}
-            </Text>
+            <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
 
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={signUpWithEmail}>
+            <TouchableOpacity>
               <Text style={styles.signupLink}>Sign up</Text>
             </TouchableOpacity>
           </View>

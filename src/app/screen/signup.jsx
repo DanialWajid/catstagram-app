@@ -47,6 +47,10 @@ const Signup = ({ onSignup }) => {
     }
   }
 
+  const goToLogin = () => {
+    navigation.navigate("Login");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -144,7 +148,7 @@ const Signup = ({ onSignup }) => {
 
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Already have an account? </Text>
-            <TouchableOpacity onPress={onSignup}>
+            <TouchableOpacity onPress={goToLogin}>
               <Text style={styles.signupLink}>Log in</Text>
             </TouchableOpacity>
           </View>
