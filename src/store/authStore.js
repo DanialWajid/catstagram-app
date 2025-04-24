@@ -166,6 +166,7 @@ export const useAuthStore = create((set) => ({
       });
 
       const data = await response.json();
+      console.log("Data", data);
 
       if (!response.ok) {
         console.log("Login failed:", data.message);
@@ -230,6 +231,44 @@ export const useAuthStore = create((set) => ({
       }
     } catch (error) {
       console.error("Logout error:", error.message);
+    }
+  },
+  forgotPassword: async (email) => {
+    set({ isLoading: true, error: null, message: null });
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/forgot-password`,
+        { email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+
+      console.log("[ForgotPassword] Response:", response.data);
+
+      set({
+        isLoading: false,
+        message: response.data.message || "Password reset email sent!",
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("[ForgotPassword] Full error:", {
+        message: error.message,
+        response: error.response?.data,
+      });
+
+      const errorMsg =
+        error.response?.data?.message ||
+        "Failed to send password reset email. Please try again.";
+
+      set({ error: errorMsg, isLoading: false });
+      throw new Error(errorMsg);
     }
   },
 

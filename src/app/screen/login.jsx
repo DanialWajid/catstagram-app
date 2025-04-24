@@ -39,12 +39,7 @@ const Login = ({ onLogin }) => {
     }
   };
   async function resetPassword() {
-    if (!email) return Alert.alert("Error", "Please enter your email");
-    setLoading(true);
-    setTimeout(() => {
-      Alert.alert("Success", "Password reset instructions sent to your email");
-      setLoading(false);
-    }, 2000);
+    navigation.navigate("ForgetPassword");
   }
 
   return (

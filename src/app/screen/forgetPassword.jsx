@@ -12,20 +12,30 @@ import { Mail, ArrowLeft } from "lucide-react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
+import { useAuthStore } from "../../store/authStore";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Use state for loading
+  const [isLoading, setIsLoading] = useState(false); // Use state for
+  const { forgotPassword } = useAuthStore();
   const navigation = useNavigation();
 
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    // Simulate async call (replace with actual forgotPassword logic)
-    setTimeout(() => {
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert("Validation", "Please enter your email address.");
+      return;
+    }
+    try {
+      const result = await forgotPassword(email);
       setIsSubmitted(true);
-      setIsLoading(false);
-    }, 2000); // Replace this with actual API call
+      Alert.alert(
+        "Success",
+        result.message || "Check your email for the reset link."
+      );
+    } catch (err) {
+      Alert.alert("Error", err.message || "Something went wrong.");
+    }
   };
 
   return (
@@ -71,7 +81,7 @@ const ForgotPasswordPage = () => {
                 </View>
 
                 <TouchableOpacity
-                  onPress={handleSubmit}
+                  onPress={handleForgotPassword}
                   style={styles.submitButton}
                   activeOpacity={0.9}
                 >
@@ -125,7 +135,6 @@ const styles = StyleSheet.create({
   },
   gradientBackground: {
     flex: 1, // Ensure the gradient covers the entire height
-    borderRadius: 24, // Ensure the gradient follows the same border radius
   },
   innerContainer: {
     padding: 20,
