@@ -1,12 +1,21 @@
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useAuthStore } from "../../store/authStore";
 
-const Home = ({ onLogout }) => {
+const Home = ({ navigation }) => {
+  const { logout } = useAuthStore();
+  const handleLogout = async () => {
+    console.log("method called");
+    await logout(); // Call the passed logout function
+    navigation.navigate("Login"); // Navigate to Login screen after logout
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home Screen</Text>
       <Text style={styles.subtitle}>Welcome to the app!</Text>
 
-      <TouchableOpacity style={styles.button} onPress={onLogout}>
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <Text style={styles.buttonText}>Logout</Text>
       </TouchableOpacity>
     </View>

@@ -10,11 +10,11 @@ const getApiUrl = () => {
 
   // Android emulator
   if (isEmulator && isEmulator.includes(":")) {
-    return `http://0.0.0.0:8000/api/user/`;
+    return `http://0.0.0.0:8000/api/user`;
   }
 
   // Physical device (replace with your computer's IP)
-  return "http://192.168.0.107:8000/api/user";
+  return "http://192.168.0.106:8000/api/user";
 };
 
 const API_URL = getApiUrl();
@@ -50,15 +50,9 @@ export const useAuthStore = create((set) => ({
   signup: async (email, password, name) => {
     set({ isLoading: true, error: null, message: null });
     try {
-      console.log(`[Signup] Attempting with:`, { email, name }); // Debug log
-
       const response = await axios.post(
         `${API_URL}/signup`,
-        {
-          email,
-          password,
-          name,
-        },
+        { email, password, name },
         {
           headers: {
             "Content-Type": "application/json",
@@ -68,24 +62,15 @@ export const useAuthStore = create((set) => ({
         }
       );
 
-      console.log("[Signup] Response:", response.data); // Debug log
+      console.log("[Signup] Response:", response.data);
 
-      const token = response.headers.authorization.split(" ")[1];
-      await SecureStore.setItemAsync("token", token);
-      await AsyncStorage.setItem(
-        "userInfo",
-        JSON.stringify(response.data.user)
-      );
-
+      // Don't look for token yet – just navigate to verification screen
       set({
-        user: response.data.user,
-        token,
-        isAuthenticated: true,
         isLoading: false,
-        message: "Signup successful!",
+        message: response.data.message,
       });
 
-      return true;
+      return { email }; // return email to use on Verification screen
     } catch (error) {
       console.error("[Signup] Full error:", {
         message: error.message,
@@ -103,6 +88,70 @@ export const useAuthStore = create((set) => ({
 
       set({ error: errorMsg, isLoading: false });
       throw error;
+    }
+  },
+  verifyEmail: async (code) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/verify-email`,
+        { code },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+
+      // Debug log
+      console.log("[VerifyEmail] Response:", response.data);
+
+      // Get token from Authorization header
+      const authHeader = response.headers.authorization;
+      const token = authHeader?.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
+
+      if (token) {
+        try {
+          await SecureStore.setItemAsync("token", token);
+          console.log("✅ Token stored successfully in SecureStore.");
+        } catch (error) {
+          console.log("❌ Failed to store token in SecureStore:", error);
+        }
+      }
+
+      if (response.data?.user) {
+        await AsyncStorage.setItem(
+          "userInfo",
+          JSON.stringify(response.data.user)
+        );
+      }
+
+      set({
+        user: response.data.user,
+        token,
+        isAuthenticated: true,
+        isLoading: false,
+        message: "Email verified successfully!",
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("[VerifyEmail] Full error:", {
+        message: error.message,
+        response: error.response?.data,
+      });
+
+      const errorMsg =
+        error.response?.data?.message ||
+        "Error verifying email. Please try again.";
+
+      set({ error: errorMsg, isLoading: false });
+      throw new Error(errorMsg);
     }
   },
 
@@ -144,16 +193,43 @@ export const useAuthStore = create((set) => ({
 
   // Logout function
   logout: async () => {
-    await Promise.all([
-      SecureStore.deleteItemAsync("token"),
-      AsyncStorage.removeItem("userInfo"),
-    ]);
+    try {
+      // Retrieve the token from SecureStore or AsyncStorage
+      const token = await SecureStore.getItemAsync("token");
 
-    set({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-    });
+      if (token) {
+        // Send the logout request to your backend to blacklist the token
+        const response = await fetch(`${API_URL}/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // Send token as Authorization header
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Successfully logged out, token blacklisted
+          console.log("Logout successful:", data.message);
+
+          // Delete token from SecureStore and AsyncStorage
+          await SecureStore.deleteItemAsync("token");
+          await AsyncStorage.removeItem("userInfo");
+
+          // Update state to reflect that the user is logged out
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          });
+        } else {
+          console.log("Logout failed:", data.message);
+        }
+      }
+    } catch (error) {
+      console.error("Logout error:", error.message);
+    }
   },
 
   // Clear error messages

@@ -8,42 +8,46 @@ import {
   Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient"; // If using Expo
+import { useAuthStore } from "../../store/authStore"; // Adjust path
+import { useNavigation } from "@react-navigation/native";
 
 const EmailVerificationPage = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);
+  const { verifyEmail } = useAuthStore(); // From Zustand or your state logic
+  const navigation = useNavigation(); // To navigate after success
 
   const handleChange = (index, value) => {
     const newCode = [...code];
-
     if (value.length > 1) {
-      const pastedCode = value.slice(0, 6).split("");
+      const pasted = value.slice(0, 6).split("");
       for (let i = 0; i < 6; i++) {
-        newCode[i] = pastedCode[i] || "";
+        newCode[i] = pasted[i] || "";
       }
       setCode(newCode);
-
-      const lastFilledIndex = newCode.findLastIndex((digit) => digit !== "");
-      const focusIndex = lastFilledIndex < 5 ? lastFilledIndex + 1 : 5;
-      inputRefs.current[focusIndex].focus();
+      const focusIndex = newCode.findLastIndex((d) => d !== "");
+      inputRefs.current[focusIndex < 5 ? focusIndex + 1 : 5]?.focus();
     } else {
       newCode[index] = value;
       setCode(newCode);
-
-      if (value && index < 5) {
-        inputRefs.current[index + 1].focus();
-      }
+      if (value && index < 5) inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const verificationCode = code.join("");
-    if (verificationCode.length === 6) {
-      setTimeout(() => {
-        Alert.alert("Email verified successfully");
-      }, 1000);
-    } else {
-      Alert.alert("Please enter a valid 6-digit code.");
+    if (verificationCode.length !== 6) {
+      Alert.alert("Invalid Code", "Please enter a valid 6-digit code.");
+      return;
+    }
+
+    try {
+      await verifyEmail(verificationCode);
+      Alert.alert("Success", "Email verified successfully!", [
+        { text: "OK", onPress: () => navigation.navigate("Home") }, // or home screen
+      ]);
+    } catch (error) {
+      Alert.alert("Verification Failed", error.message || "Please try again.");
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import {
   StyleSheet,
   View,
@@ -16,6 +17,7 @@ import { useAuthStore } from "../../store/authStore";
 import { use } from "react";
 
 const Signup = ({ onSignup }) => {
+  const navigation = useNavigation();
   const [username, setUsername] = useState(""); // Added username
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,10 +34,10 @@ const Signup = ({ onSignup }) => {
     try {
       setLoading(true);
       await signup(email, password, username);
-
+      navigation.navigate("Verification");
       Alert.alert(
-        "Success",
-        `Welcome, ${username}! Account created successfully!`
+        "Success !",
+        `Welcome, ${username}! Email Sent successfully!`
       );
       if (onSignup) onSignup();
     } catch (err) {

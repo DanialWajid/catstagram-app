@@ -1,38 +1,28 @@
-"use client";
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { useState } from "react";
-import { registerRootComponent } from "expo";
 import Login from "./screen/login";
 import Home from "./screen/home";
 import Signup from "./screen/signup";
 import ForgetPassword from "./screen/forgetPassword";
 import Verification from "./screen/verification";
 
+const Stack = createNativeStackNavigator();
+
 const App = () => {
-  // State to track whether user is logged in
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // Function to handle login
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  // Function to handle logout
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
-
-  // Render Login or Home based on login state
-  return isLoggedIn ? (
-    <Home onLogout={handleLogout} />
-  ) : (
-    <Signup />
-    // <ForgetPassword />
-    // <Verification />
-    // <Login onLogin={handleLogin} />
+  return (
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Signup"
+    >
+      <Stack.Screen name="Signup" component={Signup} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+      <Stack.Screen name="Verification" component={Verification} />
+      <Stack.Screen name="Home" component={Home} />
+    </Stack.Navigator>
   );
 };
 
-// Register and also export App as default
-registerRootComponent(App);
 export default App;
