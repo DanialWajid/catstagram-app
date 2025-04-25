@@ -13,5 +13,5 @@
     "expo-env.d.ts",
     "src/screens/app/_layout.jsx",
     "src/screens/app/index.jsx"
-  ]
+, "src/app/screens/home-old.jsx", "components/CommentButton.jsx", "components/ChangePasswordModal.jsx", "components/CommentSection.jsx", "components/CreatePostForm.jsx", "components/EditPostForm.jsx", "components/EditProfileModal.jsx", "components/FloatingShape.jsx", "components/FriendListModal.jsx", "components/FriendStatus.jsx", "components/LoadingSpinner.jsx", "components/Navbar.jsx", "components/PostCard.jsx", "components/RequestCard.jsx", "components/SavedPosts.jsx", "components/SideNav.jsx", "components/UserCard.jsx", "srsrc/app/contexts/themeContext.tsxjsx", "components/UserPosts.jsx", "src/contexts/themeContext.tsx", "src/app/screens/Profile.jsx", "src/app/screens/EditPost.jsx", "contexts/themeContext.jsx"  ]
 }

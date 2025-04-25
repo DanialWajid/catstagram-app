@@ -10,11 +10,11 @@ const getApiUrl = () => {
 
   // Android emulator
   if (isEmulator && isEmulator.includes(":")) {
-    return `http://0.0.0.0:8000/api/user`;
+    return `http://192.168.100.165:8000/api/user`;
   }
 
   // Physical device (replace with your computer's IP)
-  return "http://192.168.0.106:8000/api/user";
+  return "http://192.168.100.165:8000/api/user";
 };
 
 const API_URL = getApiUrl();
