@@ -1,0 +1,123 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  StyleSheet, 
+  ActivityIndicator 
+} from 'react-native';
+import axios from 'axios';
+import PostCard from './PostCard';
+import { useAuthStore } from '../store/authStore';
+import * as SecureStore from "expo-secure-store";
+
+const UserPosts = ({ userId, scrollEnabled = true }) => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuthStore();
+  
+  useEffect(() => {
+    const API_URL = "http://192.168.100.165:8000";
+
+    const fetchUserPosts = async () => {
+      try {
+        setLoading(true);
+        const token = await SecureStore.getItemAsync("token");
+        
+        const response = await axios.get(
+          `${API_URL}/api/posts/${userId}/${user._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setPosts(response.data.data.posts || []);
+        setLoading(false);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch posts");
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUserPosts();
+    }
+  }, [userId, user._id]);
+
+  const renderItem = ({ item }) => (
+    <PostCard post={item} user={user} />
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color='#60a5fa' />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {posts.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No posts yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={posts}
+          renderItem={renderItem}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.postsList}
+          scrollEnabled={scrollEnabled}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    padding: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    padding: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#ef4444',
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    padding: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  postsList: {
+    paddingBottom: 16,
+  },
+});
+
+export default UserPosts;

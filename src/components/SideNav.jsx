@@ -8,15 +8,12 @@ import {
 } from "react-native";
 import { Home, Bookmark, Compass, User, PlusCircle } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useAuthStore } from "../store/authStore";
 
 const SideNav = () => {
   const navigation = useNavigation();
 
-  const mockUser = {
-    _id: "12345",
-    name: "John Doe",
-    profileImage: "https://i.pravatar.cc/300",
-  };
+  const { user } = useAuthStore();
 
   const navItems = [
     {
@@ -39,10 +36,10 @@ const SideNav = () => {
     {
       icon: (
         <TouchableOpacity
-          onPress={() => navigation.navigate("Profile", { id: mockUser._id })}
+          onPress={() => navigation.navigate("Profile", { id: user._id })}
         >
           <Image
-            source={{ uri: mockUser.profileImage }}
+            source={{ uri: user.profileImage }}
             style={styles.profileImage}
           />
         </TouchableOpacity>
@@ -52,7 +49,7 @@ const SideNav = () => {
   ];
 
   return (
-    <View style={[styles.container]}>
+    <View style={styles.container}>
       {navItems.map((item, index) => (
         <TouchableOpacity
           key={index}
@@ -60,7 +57,7 @@ const SideNav = () => {
             styles.navItem,
             item.isSpecial ? styles.specialButtonContainer : null,
           ]}
-          onPress={() => navigation.navigate(item.screen, { id: mockUser._id })}
+          onPress={() => navigation.navigate(item.screen, { id: user._id })}
         >
           <View
             style={[styles.icon, item.isSpecial ? styles.glowEffect : null]}
@@ -82,6 +79,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#000", // Black background
     borderTopWidth: 1,
     borderTopColor: "#333", // Slight gray border to match black bg
+    position: "absolute", // Make the SideNav absolute positioned
+    bottom: 0, // Stick it to the bottom
+    width: "100%", // Ensure it takes full width
   },
   navItem: {
     alignItems: "center",

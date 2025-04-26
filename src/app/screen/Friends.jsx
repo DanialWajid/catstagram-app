@@ -1,0 +1,285 @@
+import React, { useState, useEffect } from 'react';
+import * as SecureStore from "expo-secure-store";
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  FlatList, 
+  StyleSheet,
+  ActivityIndicator,
+  TextInput
+} from 'react-native';
+import SideNav from "../../components/SideNav";
+import Navbar from "../../components/Navbar";
+import axios from 'axios';
+import UserCard from '../../components/UserCard';
+import { useAuthStore } from '../../store/authStore';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Search } from 'lucide-react-native';
+
+const Friends = () => {
+  const [friends, setFriends] = useState([]);
+  const [filteredFriends, setFilteredFriends] = useState([]);
+  const [activeTab, setActiveTab] = useState('friends');
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAuthStore();
+
+  const API_URL = "http://192.168.100.165:8000";
+
+  useEffect(() => {
+    if (activeTab === 'friends') {
+      fetchData();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = friends.filter((friend) =>
+        friend.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredFriends(filtered);
+    } else {
+      setFilteredFriends(friends);
+    }
+  }, [searchTerm, friends]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = await SecureStore.getItemAsync("token");
+      
+      if (!token) {
+        Alert.alert("Error", "Authentication token missing");
+        return;
+      }
+  
+      const config = {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      let response;
+      if (activeTab === 'friends') {
+        response = await axios.get(
+          `${API_URL}/api/friends/list/${user._id}`,
+          config
+        );
+        setFriends(response.data);
+        setFilteredFriends(response.data);
+      } else {
+        response = await axios.get(
+          `${API_URL}/api/friends/requests/pending`,
+          config
+        );
+        setRequests(response.data);
+      }
+    } catch (error) {
+      console.error("Full error:", error);
+      if (error.response) {
+        console.log("Error response:", error.response.data);
+        Alert.alert("Error", 
+          error.response.data.message || 
+          `Request failed with status ${error.response.status}`
+        );
+      } else {
+        Alert.alert("Error", error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchChange = (text) => {
+    setSearchTerm(text);
+  };
+
+  const renderFriendItem = ({ item }) => (
+    <UserCard 
+      key={item._id} 
+      isPrivate={false} 
+      cardUser={item} 
+      isFriend={true}
+      onFriendUpdate={fetchData}
+    />
+  );
+
+  return (
+    <View style={styles.container}>
+      <Navbar/>
+      <View style={styles.tabContainer}>
+        <View
+          style={[
+            styles.tabButton,
+            activeTab === 'friends' ? styles.activeTab : styles.inactiveTab
+          ]}
+          onPress={() => setActiveTab('friends')}
+        >
+          <Text style={[
+            styles.tabText,
+            activeTab === 'friends' ? styles.activeTabText : styles.inactiveTabText
+          ]}>
+            My Friends
+          </Text>
+        </View>
+      </View>
+
+      {/* Search Bar */}
+      <View style={[styles.searchContainer, styles.searchContainerDark]}>
+        <Search size={20} color="#9ca3af" style={styles.searchIcon} />
+        <TextInput
+          style={[styles.searchInput, styles.inputDark]}
+          placeholder="Search friends by name..."
+          placeholderTextColor="#9ca3af"
+          value={searchTerm}
+          onChangeText={handleSearchChange}
+        />
+      </View>
+
+      {/* Content Area */}
+      <View style={styles.contentContainer}>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#a78bfa" />
+          </View>
+        ) : activeTab === 'friends' ? (
+          filteredFriends.length > 0 ? (
+            <FlatList
+              data={filteredFriends}
+              renderItem={renderFriendItem}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={styles.listContainer}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {searchTerm ? 'No matching friends found' : 'No friends found'}
+              </Text>
+            </View>
+          )
+        ) : (
+          <View style={styles.requestsContainer}>
+            <LinearGradient
+              colors={['#4c1d95', '#7c3aed', '#4c1d95']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.requestsGradient}
+            >
+              <Text style={styles.requestsText}>
+                Click on the "Friend Requests" tab to manage requests
+              </Text>
+            </LinearGradient>
+          </View>
+        )}
+      </View>
+      <SideNav/>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#111827',
+    paddingBottom: 70,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#7c3aed',
+  },
+  inactiveTab: {
+    backgroundColor: '#4b5563',
+  },
+  tabText: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  activeTabText: {
+    color: '#ffffff',
+  },
+  inactiveTabText: {
+    color: '#e5e7eb',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 48,
+    borderWidth: 1,
+  },
+  searchContainerDark: {
+    backgroundColor: '#1f2937',
+    borderColor: '#374151',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 16,
+  },
+  inputDark: {
+    color: '#f9fafb',
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  listContainer: {
+    paddingBottom: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  requestsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  requestsGradient: {
+    padding: 24,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  requestsText: {
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    color: '#f9fafb',
+  },
+});
+
+export default Friends;
