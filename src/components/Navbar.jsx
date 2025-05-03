@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
   LogOut,
@@ -9,7 +16,7 @@ import {
   Menu as HamburgerIcon,
   X as CloseIcon,
   UserPlus,
-  Key
+  Key,
 } from "lucide-react-native";
 import ChangePasswordModal from "./ChangePasswordModal"; // Import the modal component
 
@@ -157,11 +164,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "500",
+    fontFamily: "InstagramLogo",
+    fontSize: 40,
+    color: "#fff",
     marginLeft: 8,
-    color: "#FFFFFF", // White text color
-    fontFamily: "Billabong", // Custom font, ensure it's added to your project
+
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   menuButton: {
     padding: 8,

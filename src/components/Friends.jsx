@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  FlatList, 
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Alert
-} from 'react-native';
-import axios from 'axios';
-import UserCard from '../../components/UserCard';
-import { useAuthStore } from '../../store/authStore';
-import * as SecureStore from 'expo-secure-store';
+  Alert,
+} from "react-native";
+import axios from "axios";
+import UserCard from "../../components/UserCard";
+import { useAuthStore } from "../../store/authStore";
+import * as SecureStore from "expo-secure-store";
 
 const Friends = () => {
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [activeTab, setActiveTab] = useState('friends');
+  const [activeTab, setActiveTab] = useState("friends");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
 
-  const API_URL = "http://192.168.0.110:8000";
+  const API_URL = "http://192.168.0.105:8000";
 
   useEffect(() => {
     fetchData();
@@ -32,18 +32,23 @@ const Friends = () => {
     try {
       setLoading(true);
       const token = await SecureStore.getItemAsync("token");
-      console.log(token)
-      console.log("user "+user._id)
-      
-      if (activeTab === 'friends') {
+      console.log(token);
+      console.log("user " + user._id);
+
+      if (activeTab === "friends") {
         // Updated endpoint to match backend
-        const response = await axios.get(`${API_URL}/api/friends/list/${user._id}`);
+        const response = await axios.get(
+          `${API_URL}/api/friends/list/${user._id}`
+        );
         setFriends(response.data);
       } else {
         // Updated endpoint to match backend
-        const response = await axios.get(`${API_URL}/api/friends/requests/pending`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await axios.get(
+          `${API_URL}/api/friends/requests/pending`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setRequests(response.data);
       }
     } catch (error) {
@@ -67,15 +72,15 @@ const Friends = () => {
   const handleRequestAction = async (requestId, action) => {
     try {
       const token = await SecureStore.getItemAsync("token");
-      
+
       // Updated endpoint to match backend
-      const endpoint = action === 'approve' ? 'approve' : 'decline';
+      const endpoint = action === "approve" ? "approve" : "decline";
       await axios.post(
         `${API_URL}/api/friends/request/${endpoint}/${requestId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       fetchData(); // Refresh the data after action
     } catch (error) {
       console.error(`Error ${action}ing request:`, error);
@@ -84,11 +89,11 @@ const Friends = () => {
   };
 
   const renderFriendItem = ({ item }) => (
-    <UserCard 
-      user={item} 
-      isFriend={activeTab === 'friends'}
-      onApprove={() => handleRequestAction(item._id, 'approve')}
-      onDecline={() => handleRequestAction(item._id, 'decline')}
+    <UserCard
+      user={item}
+      isFriend={activeTab === "friends"}
+      onApprove={() => handleRequestAction(item._id, "approve")}
+      onDecline={() => handleRequestAction(item._id, "decline")}
     />
   );
 
@@ -99,29 +104,33 @@ const Friends = () => {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === 'friends' && styles.activeTab
+            activeTab === "friends" && styles.activeTab,
           ]}
-          onPress={() => setActiveTab('friends')}
+          onPress={() => setActiveTab("friends")}
         >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'friends' && styles.activeTabText
-          ]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "friends" && styles.activeTabText,
+            ]}
+          >
             My Friends ({friends.length})
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === 'requests' && styles.activeTab
+            activeTab === "requests" && styles.activeTab,
           ]}
-          onPress={() => setActiveTab('requests')}
+          onPress={() => setActiveTab("requests")}
         >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'requests' && styles.activeTabText
-          ]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "requests" && styles.activeTabText,
+            ]}
+          >
             Requests ({requests.length})
           </Text>
         </TouchableOpacity>
@@ -135,16 +144,16 @@ const Friends = () => {
           </View>
         ) : (
           <FlatList
-            data={activeTab === 'friends' ? friends : requests}
+            data={activeTab === "friends" ? friends : requests}
             renderItem={renderFriendItem}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.listContainer}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>
-                  {activeTab === 'friends' 
-                    ? 'No friends yet' 
-                    : 'No pending requests'}
+                  {activeTab === "friends"
+                    ? "No friends yet"
+                    : "No pending requests"}
                 </Text>
               </View>
             }
@@ -152,7 +161,7 @@ const Friends = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={['#a78bfa']}
+                colors={["#a78bfa"]}
                 tintColor="#a78bfa"
               />
             }
@@ -166,10 +175,10 @@ const Friends = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: "#111827",
   },
   tabContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingTop: 16,
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -179,20 +188,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     marginHorizontal: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4b5563',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4b5563",
   },
   activeTab: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: "#7c3aed",
   },
   tabText: {
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 16,
-    color: '#e5e7eb',
+    color: "#e5e7eb",
   },
   activeTabText: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
   contentContainer: {
     flex: 1,
@@ -200,8 +209,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     paddingBottom: 16,
@@ -209,14 +218,14 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   emptyText: {
     fontSize: 16,
-    color: '#9ca3af',
-    textAlign: 'center',
+    color: "#9ca3af",
+    textAlign: "center",
   },
 });
 

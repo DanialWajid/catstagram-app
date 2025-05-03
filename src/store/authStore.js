@@ -14,7 +14,7 @@ const getApiUrl = () => {
   }
 
   // Physical device (replace with your computer's IP)
-  return "http://192.168.0.110:8000/api/user";
+  return "http://192.168.0.105:8000/api/user";
 };
 
 const API_URL = getApiUrl();
@@ -26,6 +26,11 @@ export const useAuthStore = create((set) => ({
   isLoading: false,
   error: null,
   message: null,
+
+  setUser: (updatedUser) =>
+    set((state) => ({
+      user: { ...state.user, ...updatedUser },
+    })),
 
   // Initialize auth state from storage
   initializeAuth: async () => {

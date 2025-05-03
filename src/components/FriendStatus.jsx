@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useAuthStore } from '../store/authStore';
+import React, { useState, useEffect } from "react";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { useAuthStore } from "../store/authStore";
 import * as SecureStore from "expo-secure-store";
-
 
 const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
   const [canView, setCanView] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
 
-  const API_URL = "http://192.168.0.110:8000/";
+  const API_URL = "http://192.168.0.105:8000/";
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -26,8 +25,7 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -53,10 +51,7 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator 
-          size="small" 
-          color="#60a5fa" 
-        />
+        <ActivityIndicator size="small" color="#60a5fa" />
       </View>
     );
   }
@@ -64,9 +59,7 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
   if (!canView) {
     return (
       <View style={styles.fallbackContainer}>
-        <Text style={styles.fallbackText}>
-          {fallbackMessage}
-        </Text>
+        <Text style={styles.fallbackText}>{fallbackMessage}</Text>
       </View>
     );
   }
@@ -77,19 +70,19 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
 const styles = StyleSheet.create({
   loadingContainer: {
     padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   fallbackContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
   },
   fallbackText: {
     fontSize: 16,
-    textAlign: 'center',
-    color: '#f9fafb',
+    textAlign: "center",
+    color: "#f9fafb",
   },
 });
 

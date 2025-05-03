@@ -1,46 +1,53 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TextInput, 
-  TouchableOpacity, 
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Dimensions
-} from 'react-native';
-import Navbar from '../../components/Navbar';
-import SideNav from '../../components/SideNav';
-import { getSavedPosts } from '../../services/savedPosts.services';
-import PostCard from '../../components/PostCard';
-import { Grid, List, Search } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAuthStore } from '../../store/authStore';
+  Dimensions,
+  RefreshControl,
+} from "react-native";
+import Navbar from "../../components/Navbar";
+import SideNav from "../../components/SideNav";
+import { getSavedPosts } from "../../services/savedPosts.services";
+import PostCard from "../../components/PostCard";
+import { Grid, List, Search } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuthStore } from "../../store/authStore";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const SavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState('list');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState("list");
   const [loading, setLoading] = useState(true);
-  const {user} = useAuthStore();
+  const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuthStore();
 
   const fetchSavedPosts = async () => {
     try {
-      setLoading(true);
       const posts = await getSavedPosts(user._id);
       setSavedPosts(posts);
     } catch (error) {
       console.error("Error fetching saved posts", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchSavedPosts();
   }, [user._id]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchSavedPosts();
+  };
 
   const handleUnsavePost = (postId) => {
     setSavedPosts((prevPosts) =>
@@ -69,7 +76,7 @@ const SavedPosts = () => {
 
   return (
     <View style={[styles.container, styles.containerDark]}>
-      <Navbar/>
+      <Navbar />
       <View style={[styles.searchContainer, styles.searchContainerDark]}>
         <Search size={20} color="#9ca3af" style={styles.searchIcon} />
         <TextInput
@@ -92,21 +99,30 @@ const SavedPosts = () => {
           keyExtractor={(item) => item._id}
           contentContainerStyle={[
             styles.listContainer,
-            viewMode === 'grid' ? styles.gridContainer : styles.listViewContainer
+            viewMode === "grid"
+              ? styles.gridContainer
+              : styles.listViewContainer,
           ]}
-          numColumns={viewMode === 'grid' ? 2 : 1}
+          numColumns={viewMode === "grid" ? 2 : 1}
           key={viewMode}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#a78bfa"]}
+              tintColor="#a78bfa"
+              progressBackgroundColor="#1f2937"
+            />
+          }
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            No Saved Posts Found.
-          </Text>
+          <Text style={styles.emptyText}>No Saved Posts Found.</Text>
         </View>
       )}
       <View style={styles.sideNavWrapper}>
-      <SideNav />
-    </View>
+        <SideNav />
+      </View>
     </View>
   );
 };
@@ -117,25 +133,25 @@ const styles = StyleSheet.create({
     paddingBottom: 70,
   },
   containerDark: {
-    backgroundColor: '#111827',
+    backgroundColor: "#111827",
   },
   headerGradient: {
     paddingVertical: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   headerText: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    fontWeight: "bold",
+    color: "#ffffff",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginHorizontal: 16,
     marginBottom: 16,
     marginTop: 16,
@@ -145,80 +161,82 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   searchContainerDark: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    backgroundColor: "#1f2937",
+    borderColor: "#374151",
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     fontSize: 16,
   },
   inputDark: {
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   sideNavWrapper: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
   },
   viewModeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginBottom: 16,
     gap: 16,
   },
   viewModeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
   },
   selectedButtonDark: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: "#7c3aed",
   },
   unselectedButtonDark: {
-    backgroundColor: '#374151',
+    backgroundColor: "#374151",
   },
   viewModeText: {
     marginLeft: 8,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   selectedText: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
   unselectedTextDark: {
-    color: '#a78bfa',
+    color: "#a78bfa",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     padding: 8,
   },
   gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
   },
   listViewContainer: {
     paddingHorizontal: 16,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
   },
   emptyText: {
     fontSize: 16,
-    color: '#9ca3af',
-    textAlign: 'center',
+    color: "#9ca3af",
+    textAlign: "center",
   },
 });
 

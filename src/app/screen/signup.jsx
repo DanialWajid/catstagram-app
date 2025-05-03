@@ -26,32 +26,30 @@ const Signup = ({ onSignup }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const { signup, error, isLoading } = useAuthStore();
-  async function handleSignUp() {
-    if (!username || !email || !password) {
-      return Alert.alert("Error", "Please fill in all fields");
+  const handleSignUp = async () => {
+    // 1) Basic empty-field validation
+    if (!username.trim() || !email.trim() || !password.trim()) {
+      return Alert.alert("Error", "Please fill in all fields.");
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
       const data = await signup(email, password, username);
-      if (data.success) {
+
+      if (data) {
+        Alert.alert(
+          "Success!",
+          `Welcome, ${username}! A verification email has been sent.`
+        );
         navigation.navigate("Verification");
-        Alert.alert("Success", data.message);
-      } else {
-        Alert.alert("Error Occurred", data.message);
       }
-      Alert.alert(
-        "Success !",
-        `Welcome, ${username}! Email Sent successfully!`
-      );
-      if (onSignup) onSignup();
     } catch (err) {
-      console.error("Signup error:", err.message);
+      console.error("Signup error:", err);
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
-  }
-
+  };
   const goToLogin = () => {
     navigation.navigate("Login");
   };

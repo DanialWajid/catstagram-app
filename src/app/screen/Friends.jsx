@@ -1,34 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  FlatList, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
   StyleSheet,
   ActivityIndicator,
-  TextInput
-} from 'react-native';
+  TextInput,
+  RefreshControl,
+} from "react-native";
 import SideNav from "../../components/SideNav";
 import Navbar from "../../components/Navbar";
-import axios from 'axios';
-import UserCard from '../../components/UserCard';
-import { useAuthStore } from '../../store/authStore';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Search } from 'lucide-react-native';
+import axios from "axios";
+import UserCard from "../../components/UserCard";
+import { useAuthStore } from "../../store/authStore";
+import { LinearGradient } from "expo-linear-gradient";
+import { Search } from "lucide-react-native";
 
 const Friends = () => {
   const [friends, setFriends] = useState([]);
   const [filteredFriends, setFilteredFriends] = useState([]);
-  const [activeTab, setActiveTab] = useState('friends');
+  const [activeTab, setActiveTab] = useState("friends");
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
 
-  const API_URL = "http://192.168.0.110:8000";
+  const API_URL = "http://192.168.0.105:8000";
 
   useEffect(() => {
-    if (activeTab === 'friends') {
+    if (activeTab === "friends") {
       fetchData();
     }
   }, [activeTab]);
@@ -46,50 +48,47 @@ const Friends = () => {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       const token = await SecureStore.getItemAsync("token");
-      
+
       if (!token) {
         Alert.alert("Error", "Authentication token missing");
         return;
       }
-  
+
       const config = {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       };
-  
-      let response;
-      if (activeTab === 'friends') {
-        response = await axios.get(
-          `${API_URL}/api/friends/list/${user._id}`,
-          config
-        );
-        setFriends(response.data);
-        setFilteredFriends(response.data);
-      } else {
-        response = await axios.get(
-          `${API_URL}/api/friends/requests/pending`,
-          config
-        );
-        setRequests(response.data);
-      }
+
+      const response = await axios.get(
+        `${API_URL}/api/friends/list/${user._id}`,
+        config
+      );
+      setFriends(response.data);
+      setFilteredFriends(response.data);
     } catch (error) {
       console.error("Full error:", error);
       if (error.response) {
         console.log("Error response:", error.response.data);
-        Alert.alert("Error", 
-          error.response.data.message || 
-          `Request failed with status ${error.response.status}`
+        Alert.alert(
+          "Error",
+          error.response.data.message ||
+            `Request failed with status ${error.response.status}`
         );
       } else {
         Alert.alert("Error", error.message);
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
   };
 
   const handleSearchChange = (text) => {
@@ -97,10 +96,10 @@ const Friends = () => {
   };
 
   const renderFriendItem = ({ item }) => (
-    <UserCard 
-      key={item._id} 
-      isPrivate={false} 
-      cardUser={item} 
+    <UserCard
+      key={item._id}
+      isPrivate={false}
+      cardUser={item}
       isFriend={true}
       onFriendUpdate={fetchData}
     />
@@ -108,22 +107,26 @@ const Friends = () => {
 
   return (
     <View style={styles.container}>
-      <Navbar/>
+      <Navbar />
       <View style={styles.tabContainer}>
-        <View
+        <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === 'friends' ? styles.activeTab : styles.inactiveTab
+            activeTab === "friends" ? styles.activeTab : styles.inactiveTab,
           ]}
-          onPress={() => setActiveTab('friends')}
+          onPress={() => setActiveTab("friends")}
         >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'friends' ? styles.activeTabText : styles.inactiveTabText
-          ]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "friends"
+                ? styles.activeTabText
+                : styles.inactiveTabText,
+            ]}
+          >
             My Friends
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -140,41 +143,42 @@ const Friends = () => {
 
       {/* Content Area */}
       <View style={styles.contentContainer}>
-        {loading ? (
+        {loading && !refreshing ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#a78bfa" />
           </View>
-        ) : activeTab === 'friends' ? (
-          filteredFriends.length > 0 ? (
-            <FlatList
-              data={filteredFriends}
-              renderItem={renderFriendItem}
-              keyExtractor={(item) => item._id}
-              contentContainerStyle={styles.listContainer}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {searchTerm ? 'No matching friends found' : 'No friends found'}
-              </Text>
-            </View>
-          )
         ) : (
-          <View style={styles.requestsContainer}>
-            <LinearGradient
-              colors={['#4c1d95', '#7c3aed', '#4c1d95']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.requestsGradient}
-            >
-              <Text style={styles.requestsText}>
-                Click on the "Friend Requests" tab to manage requests
-              </Text>
-            </LinearGradient>
-          </View>
+          <FlatList
+            data={filteredFriends}
+            renderItem={renderFriendItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={
+              filteredFriends.length === 0
+                ? styles.emptyListContainer
+                : styles.listContainer
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  {searchTerm
+                    ? "No matching friends found"
+                    : "No friends found"}
+                </Text>
+              </View>
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#a78bfa"]}
+                tintColor="#a78bfa"
+                progressBackgroundColor="#1f2937"
+              />
+            }
+          />
         )}
       </View>
-      <SideNav/>
+      <SideNav />
     </View>
   );
 };
@@ -182,11 +186,11 @@ const Friends = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: "#111827",
     paddingBottom: 70,
   },
   tabContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingTop: 16,
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -196,28 +200,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     marginHorizontal: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   activeTab: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: "#7c3aed",
   },
   inactiveTab: {
-    backgroundColor: '#4b5563',
+    backgroundColor: "#4b5563",
   },
   tabText: {
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 16,
   },
   activeTabText: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
   inactiveTabText: {
-    color: '#e5e7eb',
+    color: "#e5e7eb",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 8,
@@ -226,59 +230,63 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   searchContainerDark: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    backgroundColor: "#1f2937",
+    borderColor: "#374151",
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     fontSize: 16,
   },
   inputDark: {
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   contentContainer: {
     flex: 1,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     paddingBottom: 16,
   },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 32,
   },
   emptyText: {
     fontSize: 16,
-    color: '#9ca3af',
-    textAlign: 'center',
+    color: "#9ca3af",
+    textAlign: "center",
   },
   requestsContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
   },
   requestsGradient: {
     padding: 24,
     borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   requestsText: {
     fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    color: '#f9fafb',
+    fontWeight: "500",
+    textAlign: "center",
+    color: "#f9fafb",
   },
 });
 

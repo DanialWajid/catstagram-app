@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,29 +10,32 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
-  Image
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import { updateProfile } from '../services/profile.services';
-import { useAuthStore } from '../store/authStore';
-import { Upload, User, Lock, Unlock } from 'lucide-react-native';
+  Image,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import { updateProfile } from "../services/profile.services";
+import { useAuthStore } from "../store/authStore";
+import { Upload, User, Lock, Unlock } from "lucide-react-native";
 
 const EditProfileModal = ({ profile, onClose, onUpdate }) => {
-  const [name, setName] = useState(profile.name || '');
-  const [bio, setBio] = useState(profile.bio || '');
+  const [name, setName] = useState(profile.name || "");
+  const [bio, setBio] = useState(profile.bio || "");
   const [isPrivate, setIsPrivate] = useState(profile.isPrivate || false);
   const [profileImage, setProfileImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(profile.profileImage || '');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [imagePreview, setImagePreview] = useState(profile.profileImage || "");
+  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore(); // Make sure to get setUser from the store
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'We need camera roll permissions to upload images.');
+
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "We need camera roll permissions to upload images."
+      );
       return;
     }
 
@@ -46,64 +49,98 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
     if (!result.canceled) {
       try {
         // Check file size
-        const fileInfo = await fetch(result.assets[0].uri).then(res => {
+        const fileInfo = await fetch(result.assets[0].uri).then((res) => {
           return {
-            size: res.headers.get('Content-Length'),
-            type: res.headers.get('Content-Type')
+            size: res.headers.get("Content-Length"),
+            type: res.headers.get("Content-Type"),
           };
         });
-        
+
         if (fileInfo.size && parseInt(fileInfo.size) > 5 * 1024 * 1024) {
-          setErrorMessage('File size should be less than 5MB');
+          setErrorMessage("File size should be less than 5MB");
           return;
         }
-        
+
         // Process the image
         const manipResult = await manipulateAsync(
           result.assets[0].uri,
           [{ resize: { width: 500, height: 500 } }],
           { format: SaveFormat.JPEG, compress: 0.8 }
         );
-        
+
         setProfileImage(manipResult.uri);
         setImagePreview(manipResult.uri);
-        setErrorMessage('');
+        setErrorMessage("");
       } catch (error) {
-        console.error('Error processing image:', error);
-        setErrorMessage('Error processing image. Please try again.');
+        console.error("Error processing image:", error);
+        setErrorMessage("Error processing image. Please try again.");
       }
     }
   };
 
   const handleSubmit = async () => {
-    setErrorMessage('');
+    setErrorMessage("");
     setLoading(true);
 
     try {
-      // Create form data
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('bio', bio);
-      formData.append('isPrivate', isPrivate.toString());
-      
+      formData.append("name", name);
+      formData.append("bio", bio);
+      formData.append("isPrivate", isPrivate.toString());
+
       if (profileImage) {
-        const filename = profileImage.split('/').pop();
+        const filename = profileImage.split("/").pop();
         const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image';
-        
-        formData.append('profileImage', {
-          uri: Platform.OS === 'ios' ? profileImage.replace('file://', '') : profileImage,
+        const type = match ? `image/${match[1]}` : "image";
+
+        formData.append("profileImage", {
+          uri:
+            Platform.OS === "ios"
+              ? profileImage.replace("file://", "")
+              : profileImage,
           name: filename,
-          type
+          type,
         });
       }
 
       const updatedProfile = await updateProfile(formData, user._id);
-      onUpdate(updatedProfile);
+
+      // Update the auth store with the new profile data
+      if (updatedProfile) {
+        // Update the user in the auth store with the new profile image
+        setUser({
+          ...user,
+          profileImage: updatedProfile.profileImage || user.profileImage,
+          name: updatedProfile.name || user.name,
+          bio: updatedProfile.bio || user.bio,
+          isPrivate:
+            updatedProfile.isPrivate !== undefined
+              ? updatedProfile.isPrivate
+              : user.isPrivate,
+        });
+      }
+
+      // Call onUpdate if provided
+      if (onUpdate) {
+        onUpdate(updatedProfile);
+      }
+
       onClose();
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setErrorMessage(error.response?.data?.error || 'Failed to update profile');
+      console.error("Error updating profile:", error);
+      const msg = error.response?.data?.error || "Failed to update profile";
+
+      // If it's the username‑exists case, show a dedicated alert
+      if (msg === "Username already exists") {
+        Alert.alert(
+          "Username Taken",
+          "That username is already in use. Please choose another one."
+        );
+      } else {
+        Alert.alert("Error", msg);
+      }
+
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
@@ -120,23 +157,21 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.modalOverlay}
         activeOpacity={1}
         onPressOut={onClose}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.modalContainer}
           activeOpacity={1}
           onPress={(e) => e.stopPropagation()}
         >
-          <ScrollView 
+          <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.title}>
-              Edit Profile
-            </Text>
+            <Text style={styles.title}>Edit Profile</Text>
 
             {errorMessage ? (
               <View style={styles.errorContainer}>
@@ -146,8 +181,8 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
 
             {/* Profile Image */}
             <View style={styles.imageContainer}>
-              <TouchableOpacity 
-                onPress={pickImage} 
+              <TouchableOpacity
+                onPress={pickImage}
                 style={styles.imagePickerContainer}
                 activeOpacity={0.7}
               >
@@ -169,9 +204,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
 
             {/* Name Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>
-                Name
-              </Text>
+              <Text style={styles.label}>Name</Text>
               <TextInput
                 style={styles.input}
                 value={name}
@@ -183,9 +216,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
 
             {/* Bio Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>
-                Bio
-              </Text>
+              <Text style={styles.label}>Bio</Text>
               <TextInput
                 style={[styles.input, styles.bioInput]}
                 value={bio}
@@ -200,36 +231,30 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
 
             {/* Profile Privacy */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>
-                Profile Privacy
-              </Text>
+              <Text style={styles.label}>Profile Privacy</Text>
               <View style={styles.privacyOptions}>
                 <TouchableOpacity
                   style={[
                     styles.privacyOption,
-                    !isPrivate && styles.selectedOption
+                    !isPrivate && styles.selectedOption,
                   ]}
                   onPress={() => handlePrivacyPress(false)}
                   activeOpacity={0.7}
                 >
                   <Unlock size={20} color="#e5e7eb" />
-                  <Text style={styles.privacyOptionText}>
-                    Public Profile
-                  </Text>
+                  <Text style={styles.privacyOptionText}>Public Profile</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     styles.privacyOption,
-                    isPrivate && styles.selectedOption
+                    isPrivate && styles.selectedOption,
                   ]}
                   onPress={() => handlePrivacyPress(true)}
                   activeOpacity={0.7}
                 >
                   <Lock size={20} color="#e5e7eb" />
-                  <Text style={styles.privacyOptionText}>
-                    Private Profile
-                  </Text>
+                  <Text style={styles.privacyOptionText}>Private Profile</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -240,7 +265,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                 style={[
                   styles.button,
                   styles.saveButton,
-                  loading && styles.disabledButton
+                  loading && styles.disabledButton,
                 ]}
                 onPress={handleSubmit}
                 disabled={loading}
@@ -252,12 +277,9 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                   <Text style={styles.buttonText}>Save Changes</Text>
                 )}
               </TouchableOpacity>
-              
+
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.cancelButton
-                ]}
+                style={[styles.button, styles.cancelButton]}
                 onPress={onClose}
                 disabled={loading}
                 activeOpacity={0.7}
@@ -272,127 +294,128 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
   );
 };
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
   },
   modalContainer: {
-    width: '90%',
+    width: "90%",
     maxWidth: 400,
     borderRadius: 16,
-    maxHeight: '80%',
-    shadowColor: '#000',
+    maxHeight: "80%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    backgroundColor: '#1f2937',
+    backgroundColor: "#1f2937",
   },
   scrollContent: {
     padding: 24,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 24,
-    textAlign: 'center',
-    color: '#f9fafb',
+    textAlign: "center",
+    color: "#f9fafb",
   },
   errorContainer: {
-    backgroundColor: '#dc2626',
+    backgroundColor: "#dc2626",
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffffff',
-    textAlign: 'center',
+    color: "#ffffff",
+    textAlign: "center",
   },
   imageContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   imagePickerContainer: {
-    position: 'relative',
+    position: "relative",
   },
   profileImage: {
     width: 128,
     height: 128,
     borderRadius: 64,
     borderWidth: 4,
-    borderColor: '#3b82f6',
+    borderColor: "#3b82f6",
   },
   profileImageFallback: {
     width: 128,
     height: 128,
     borderRadius: 64,
     borderWidth: 4,
-    borderColor: '#3b82f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#374151',
+    borderColor: "#3b82f6",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#374151",
   },
   uploadIconContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: '#3b82f6',
+    backgroundColor: "#3b82f6",
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 2,
-    borderColor: '#1f2937',
+    borderColor: "#1f2937",
   },
   inputContainer: {
     marginBottom: 16,
   },
   label: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   input: {
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#374151',
-    borderColor: '#4b5563',
-    color: '#f9fafb',
+    backgroundColor: "#374151",
+    borderColor: "#4b5563",
+    color: "#f9fafb",
   },
   bioInput: {
     minHeight: 100,
   },
   privacyOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   privacyOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 4,
-    backgroundColor: '#1f2937',
+    backgroundColor: "#1f2937",
   },
   selectedOption: {
-    backgroundColor: '#374151',
+    backgroundColor: "#374151",
   },
   privacyOptionText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 16,
     gap: 12,
   },
@@ -400,22 +423,22 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   saveButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
   },
   cancelButton: {
-    backgroundColor: '#4b5563',
+    backgroundColor: "#4b5563",
   },
   disabledButton: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

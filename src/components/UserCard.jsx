@@ -8,14 +8,15 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-} from "react-native";``
+} from "react-native";
+``;
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { User, Ban } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "../store/authStore";
 
-const API_URL = "http://192.168.0.110:8000/api";
+const API_URL = "http://192.168.0.105:8000/api";
 
 const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const navigation = useNavigation();
@@ -23,7 +24,7 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const [requestSent, setRequestSent] = useState(false);
   const [requestId, setRequestId] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
-  const {user} = useAuthStore();
+  const { user } = useAuthStore();
   useEffect(() => {
     const fetchUserStatus = async () => {
       try {
@@ -49,32 +50,45 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   }, [cardUser._id]);
 
   const handleBlockUser = async () => {
-    Alert.alert("Block User", `Are you sure you want to block ${cardUser.name}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Block",
-        onPress: async () => {
-          setIsLoading(true);
-          try {
-            const token = await SecureStore.getItemAsync("token");
-            const response = await axios.post(`${API_URL}/user/block-user/${user._id}`, {
-              userIdToBlock: cardUser._id,
-            });
-            if (response.data.success) {
-              setIsBlocked(true);
-              Alert.alert("Success", `User ${cardUser.name} has been blocked.`);
-              onFriendUpdate();
+    Alert.alert(
+      "Block User",
+      `Are you sure you want to block ${cardUser.name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              const token = await SecureStore.getItemAsync("token");
+              const response = await axios.post(
+                `${API_URL}/user/block-user/${user._id}`,
+                {
+                  userIdToBlock: cardUser._id,
+                }
+              );
+              if (response.data.success) {
+                setIsBlocked(true);
+                Alert.alert(
+                  "Success",
+                  `User ${cardUser.name} has been blocked.`
+                );
+                onFriendUpdate();
+              }
+            } catch (error) {
+              console.error("Error blocking user:", error);
+              Alert.alert(
+                "Error",
+                "Failed to block the user. Please try again."
+              );
+            } finally {
+              setIsLoading(false);
             }
-          } catch (error) {
-            console.error("Error blocking user:", error);
-            Alert.alert("Error", "Failed to block the user. Please try again.");
-          } finally {
-            setIsLoading(false);
-          }
+          },
+          style: "destructive",
         },
-        style: "destructive",
-      },
-    ]);
+      ]
+    );
   };
 
   const handleUnblockUser = async () => {
@@ -97,7 +111,10 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
               );
               if (response.data.success) {
                 setIsBlocked(false);
-                Alert.alert("Success", `User ${cardUser.name} has been unblocked.`);
+                Alert.alert(
+                  "Success",
+                  `User ${cardUser.name} has been unblocked.`
+                );
                 onFriendUpdate();
               }
             } catch (error) {
@@ -117,11 +134,11 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
 
   const handleFriendRequest = async () => {
     if (isLoading || requestSent || isBlocked) return;
-  
+
     setIsLoading(true);
     try {
       const token = await SecureStore.getItemAsync("token");
-  
+
       const response = await axios.post(
         `${API_URL}/friends/request/${cardUser._id}`,
         {}, // Empty body since this route doesn't need one
@@ -131,24 +148,26 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
           },
         }
       );
-  
+
       const { request } = response.data;
       setRequestSent(true);
       setRequestId(request.id); // Adjusted to match your backend's response shape
       onFriendUpdate();
       Alert.alert("Success", `Friend request sent to ${cardUser.name}.`);
     } catch (error) {
-      console.error("Error sending friend request:", error.response?.data || error.message);
+      console.error(
+        "Error sending friend request:",
+        error.response?.data || error.message
+      );
       Alert.alert("Error", "Failed to send friend request. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   const handleUnsendRequest = async () => {
     if (isLoading || !requestSent || !requestId) return;
-  
+
     Alert.alert(
       "Cancel Request",
       "Are you sure you want to cancel this friend request?",
@@ -160,22 +179,25 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
             setIsLoading(true);
             try {
               const token = await SecureStore.getItemAsync("token");
-  
-              await axios.delete(
-                `${API_URL}/friends/request/${requestId}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
-  
+
+              await axios.delete(`${API_URL}/friends/request/${requestId}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
               setRequestSent(false);
               setRequestId(null);
               onFriendUpdate();
             } catch (error) {
-              console.error("Error unsending friend request:", error.response?.data || error.message);
-              Alert.alert("Error", "Failed to unsend friend request. Please try again.");
+              console.error(
+                "Error unsending friend request:",
+                error.response?.data || error.message
+              );
+              Alert.alert(
+                "Error",
+                "Failed to unsend friend request. Please try again."
+              );
             } finally {
               setIsLoading(false);
             }
@@ -184,7 +206,6 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
       ]
     );
   };
-  
 
   const handleRemoveFriend = async () => {
     if (isBlocked) return;
@@ -293,7 +314,9 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
           <TouchableOpacity
             onPress={() => navigation.navigate("Profile", { id: cardUser._id })}
           >
-            <Text style={[styles.userName, styles.darkText]}>{cardUser.name}</Text>
+            <Text style={[styles.userName, styles.darkText]}>
+              {cardUser.name}
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.userEmail}>

@@ -74,10 +74,9 @@ const Profile = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      
-    await deleteAccount(id);
-    navigation.navigate("Signup")
-
+      setShowDeleteConfirm(false);
+      await deleteAccount(id);
+      navigation.navigate("Signup");
     } catch (error) {
       console.error("Error deleting account:", error);
       Alert.alert("Error", "Failed to delete account. Please try again.");
@@ -86,7 +85,13 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.containerDark, styles.loadingContainer]}>
+      <View
+        style={[
+          styles.container,
+          styles.containerDark,
+          styles.loadingContainer,
+        ]}
+      >
         <ActivityIndicator size="large" color="#a78bfa" />
       </View>
     );
@@ -102,7 +107,7 @@ const Profile = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#a78bfa']}
+            colors={["#a78bfa"]}
             tintColor="#a78bfa"
           />
         }
@@ -116,7 +121,9 @@ const Profile = () => {
                   style={styles.avatar}
                 />
               ) : (
-                <View style={[styles.avatarFallback, styles.avatarFallbackDark]}>
+                <View
+                  style={[styles.avatarFallback, styles.avatarFallbackDark]}
+                >
                   <UserIcon size={40} color="#e5e7eb" />
                 </View>
               )}
@@ -157,14 +164,22 @@ const Profile = () => {
           {id === userId && !isBlocked && (
             <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={[styles.actionButton, styles.editButton, styles.editButtonDark]}
+                style={[
+                  styles.actionButton,
+                  styles.editButton,
+                  styles.editButtonDark,
+                ]}
                 onPress={() => setShowEditModal(true)}
               >
                 <Text style={styles.buttonText}>Edit Profile</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionButton, styles.deleteButton, styles.deleteButtonDark]}
+                style={[
+                  styles.actionButton,
+                  styles.deleteButton,
+                  styles.deleteButtonDark,
+                ]}
                 onPress={() => setShowDeleteConfirm(true)}
               >
                 <Text style={styles.buttonText}>Delete Account</Text>
@@ -222,13 +237,21 @@ const Profile = () => {
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.deleteButton, styles.deleteButtonDark]}
+                style={[
+                  styles.modalButton,
+                  styles.deleteButton,
+                  styles.deleteButtonDark,
+                ]}
                 onPress={handleDeleteAccount}
               >
-                <Text style={styles.buttonText}>Delete Account</Text>
+                <Text style={styles.buttonText}>Delete</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton, styles.cancelButtonDark]}
+                style={[
+                  styles.modalButton,
+                  styles.cancelButton,
+                  styles.cancelButtonDark,
+                ]}
                 onPress={() => setShowDeleteConfirm(false)}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
@@ -411,9 +434,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
-    textAlign:'center',
+    textAlign: "center",
   },
 });
 

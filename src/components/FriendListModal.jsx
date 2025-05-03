@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
-import { 
-  View, 
-  Text, 
-  Modal, 
-  TouchableOpacity, 
-  FlatList, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
   Pressable,
   ActivityIndicator,
   Dimensions,
-  Image
-} from 'react-native';
-import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
-import { User, X } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+  Image,
+} from "react-native";
+import axios from "axios";
+import { useAuthStore } from "../store/authStore";
+import { User, X } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const FriendsListModal = ({ isOpen, onClose, userId }) => {
   const [mutualFriends, setMutualFriends] = useState([]);
@@ -25,8 +25,8 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const navigation = useNavigation();
-  
-  const API_URL = "http://192.168.0.110:8000/";
+
+  const API_URL = "http://192.168.0.105:8000/";
 
   useEffect(() => {
     if (isOpen) {
@@ -38,14 +38,15 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
     try {
       const token = await SecureStore.getItemAsync("token");
       setLoading(true);
-  
+
       // Fetch profile's friends
       const profileFriendsResponse = await axios.get(
-        `${API_URL}api/friends/list/${userId}`, {
+        `${API_URL}api/friends/list/${userId}`,
+        {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       // Handle different response structures
       let profileFriends = [];
       if (Array.isArray(profileFriendsResponse.data)) {
@@ -55,14 +56,15 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
       } else if (profileFriendsResponse.data?.data) {
         profileFriends = profileFriendsResponse.data.data;
       }
-  
+
       if (userId !== user._id) {
         const myFriendsResponse = await axios.get(
-          `${API_URL}api/friends/list/${user._id}`, {
+          `${API_URL}api/friends/list/${user._id}`,
+          {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-  
+
         let myFriends = [];
         if (Array.isArray(myFriendsResponse.data)) {
           myFriends = myFriendsResponse.data;
@@ -71,25 +73,27 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
         } else if (myFriendsResponse.data?.data) {
           myFriends = myFriendsResponse.data.data;
         }
-  
+
         // Calculate mutual friends
         const mutual = profileFriends.filter((profileFriend) =>
           myFriends.some((myFriend) => myFriend._id === profileFriend._id)
         );
-  
+
         // Calculate other friends (excluding mutual friends AND current user)
         const others = profileFriends.filter(
           (profileFriend) =>
             !myFriends.some((myFriend) => myFriend._id === profileFriend._id) &&
-            profileFriend._id !== user._id  // Exclude current user
+            profileFriend._id !== user._id // Exclude current user
         );
-  
+
         setMutualFriends(mutual);
         setOtherFriends(others);
       } else {
         // If viewing own profile, all friends go to otherFriends (excluding self)
         setMutualFriends([]);
-        setOtherFriends(profileFriends.filter(friend => friend._id !== user._id));
+        setOtherFriends(
+          profileFriends.filter((friend) => friend._id !== user._id)
+        );
       }
     } catch (error) {
       console.error("Error fetching friends:", error);
@@ -105,14 +109,11 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
       style={styles.friendCard}
       onPress={() => {
         onClose();
-        navigation.navigate('Profile', { id: item._id });
+        navigation.navigate("Profile", { id: item._id });
       }}
     >
       {item.profileImage ? (
-        <Image
-          source={{ uri: item.profileImage }}
-          style={styles.avatar}
-        />
+        <Image source={{ uri: item.profileImage }} style={styles.avatar} />
       ) : (
         <View style={styles.avatarFallback}>
           <User size={32} color="#9ca3af" />
@@ -176,7 +177,8 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
                     {/* Other Friends Section Header */}
                     <View style={styles.sectionContainer}>
                       <Text style={styles.sectionTitle}>
-                        {userId === user._id ? "All Friends" : "Other Friends"} ({otherFriends.length})
+                        {userId === user._id ? "All Friends" : "Other Friends"}{" "}
+                        ({otherFriends.length})
                       </Text>
                     </View>
                   </>
@@ -187,8 +189,8 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
                 contentContainerStyle={styles.mainListContent}
                 ListEmptyComponent={
                   <Text style={styles.emptyText}>
-                    {userId === user._id 
-                      ? "You don't have any friends yet" 
+                    {userId === user._id
+                      ? "You don't have any friends yet"
                       : "No other friends to show"}
                   </Text>
                 }
@@ -204,42 +206,42 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
     width: width * 0.9,
-    height: '80%', // Changed from maxHeight to height
+    height: "80%", // Changed from maxHeight to height
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    backgroundColor: '#1f2937',
+    backgroundColor: "#1f2937",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#374151',
+    borderBottomColor: "#374151",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#f9fafb',
+    fontWeight: "bold",
+    color: "#f9fafb",
   },
   closeButton: {
     padding: 4,
   },
   loadingContainer: {
     padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   friendsContainer: {
     flex: 1,
@@ -249,21 +251,21 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     padding: 16,
     paddingBottom: 8,
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   friendsList: {
     paddingHorizontal: 16,
   },
   friendCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
-    backgroundColor: '#374151',
+    backgroundColor: "#374151",
   },
   avatar: {
     width: 48,
@@ -274,9 +276,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4b5563',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4b5563",
   },
   friendInfo: {
     marginLeft: 12,
@@ -296,21 +298,21 @@ const styles = StyleSheet.create({
   },
   friendName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#f9fafb',
+    fontWeight: "600",
+    color: "#f9fafb",
   },
   friendEmail: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: "#9ca3af",
   },
   emptyContainer: {
     padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: '#9ca3af',
+    color: "#9ca3af",
     padding: 20,
   },
 });

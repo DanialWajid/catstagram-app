@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,64 +14,126 @@ import SideNav from "../../components/SideNav";
 import Navbar from "../../components/Navbar";
 import PostCard from "../../components/PostCard";
 import axios from "axios";
+import { useFocusEffect } from "@react-navigation/native";
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false); // Separate loading state for search
+  const [searchLoading, setSearchLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
-  const API_URL = "http://192.168.0.110:8000/api";
+  const API_URL = "http://192.168.0.105:8000/api";
   const LIMIT = 5;
 
+  // Initial load
   useEffect(() => {
-    fetchPosts();
+    fetchInitialPosts();
   }, []);
 
-  const fetchPosts = async (query = "") => {
+  // Refresh posts when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Home screen focused - refreshing posts");
+      fetchInitialPosts();
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
+
+  // Separate function for initial/refresh posts to ensure clean state
+  const fetchInitialPosts = async () => {
+    try {
+      setLoading(true);
+
+      // Force cache bypass with timestamp
+      const timestamp = new Date().getTime();
+      const response = await axios.get(
+        `${API_URL}/posts/${user._id}?page=1&limit=${LIMIT}&search=${searchQuery}&_t=${timestamp}`,
+        {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
+
+      const newPosts = response.data.data;
+
+      console.log(`Fetched ${newPosts.length} posts on refresh`);
+
+      setPosts(newPosts);
+      setPage(2); // Reset to page 2 for next load
+
+      setHasMore(newPosts.length >= LIMIT);
+    } catch (error) {
+      console.error("Error fetching initial posts:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Function to load more posts when scrolling
+  const fetchMorePosts = async () => {
     if (!hasMore || loading) return;
 
     try {
       setLoading(true);
       const response = await axios.get(
-        `${API_URL}/posts/${user._id}?page=${page}&limit=${LIMIT}&search=${query}`
+        `${API_URL}/posts/${user._id}?page=${page}&limit=${LIMIT}&search=${searchQuery}`
       );
 
       const newPosts = response.data.data;
+
+      console.log(`Fetched ${newPosts.length} more posts when scrolling`);
 
       if (newPosts.length < LIMIT) {
         setHasMore(false);
       }
 
-      setPosts((prevPosts) => (page === 1 ? newPosts : [...prevPosts, ...newPosts]));
+      setPosts((prevPosts) => {
+        // Get existing post IDs
+        const existingIds = new Set(prevPosts.map((post) => post._id));
+
+        // Filter out any new posts that already exist
+        const uniqueNewPosts = newPosts.filter(
+          (post) => !existingIds.has(post._id)
+        );
+
+        return [...prevPosts, ...uniqueNewPosts];
+      });
+
       setPage((prevPage) => prevPage + 1);
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      console.error("Error fetching more posts:", error);
     } finally {
       setLoading(false);
-      setSearchLoading(false);
     }
   };
 
   const handleSearch = () => {
-    setPage(1);
-    setHasMore(true);
-    setSearchLoading(true); // Only set search loading to true
-    fetchPosts(searchQuery);
+    setSearchLoading(true);
+    fetchInitialPosts();
   };
 
   const handleRefresh = async () => {
-    try {
-      setRefreshing(true);
-      setPage(1);
-      setHasMore(true);
-      await fetchPosts(searchQuery);
-    } finally {
-      setRefreshing(false);
+    console.log("Pull-to-refresh triggered");
+    setRefreshing(true);
+    await fetchInitialPosts();
+  };
+
+  // Create a truly unique key for each post
+  const getUniqueKey = (item, index) => {
+    if (item._id) {
+      return `post-${item._id}`;
     }
+    // If no _id, use a combination of index and timestamp to ensure uniqueness
+    return `post-${index}-${Date.now()}`;
   };
 
   const renderPostItem = ({ item }) => <PostCard post={item} user={user} />;
@@ -101,9 +163,9 @@ const Home = () => {
       <FlatList
         data={posts}
         renderItem={renderPostItem}
-        keyExtractor={(item, index) => item._id?.toString() || index.toString()}
+        keyExtractor={getUniqueKey}
         contentContainerStyle={styles.listContainer}
-        onEndReached={() => fetchPosts(searchQuery)}
+        onEndReached={fetchMorePosts}
         onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
@@ -114,10 +176,12 @@ const Home = () => {
           />
         }
         ListFooterComponent={
-          loading && <ActivityIndicator size="small" color="#a78bfa" />
+          loading &&
+          !refreshing && <ActivityIndicator size="small" color="#a78bfa" />
         }
         ListEmptyComponent={
-          !loading && !searchLoading && (
+          !loading &&
+          !searchLoading && (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
                 No posts found. Be the first to create a post!

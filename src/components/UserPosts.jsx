@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator 
-} from 'react-native';
-import axios from 'axios';
-import PostCard from './PostCard';
-import { useAuthStore } from '../store/authStore';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import axios from "axios";
+import PostCard from "./PostCard";
+import { useAuthStore } from "../store/authStore";
 import * as SecureStore from "expo-secure-store";
 
 const UserPosts = ({ userId, scrollEnabled = true }) => {
@@ -16,15 +16,15 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuthStore();
-  
+
   useEffect(() => {
-    const API_URL = "http://192.168.0.110:8000";
+    const API_URL = "http://192.168.0.105:8000";
 
     const fetchUserPosts = async () => {
       try {
         setLoading(true);
         const token = await SecureStore.getItemAsync("token");
-        
+
         const response = await axios.get(
           `${API_URL}/api/posts/${userId}/${user._id}`,
           {
@@ -47,14 +47,12 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
     }
   }, [userId, user._id]);
 
-  const renderItem = ({ item }) => (
-    <PostCard post={item} user={user} />
-  );
+  const renderItem = ({ item }) => <PostCard post={item} user={user} />;
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color='#60a5fa' />
+        <ActivityIndicator size="large" color="#60a5fa" />
       </View>
     );
   }
@@ -93,26 +91,26 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     padding: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorContainer: {
     padding: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorText: {
-    color: '#ef4444',
-    textAlign: 'center',
+    color: "#ef4444",
+    textAlign: "center",
   },
   emptyContainer: {
     padding: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyText: {
-    color: '#9ca3af',
-    textAlign: 'center',
+    color: "#9ca3af",
+    textAlign: "center",
     fontSize: 16,
   },
   postsList: {

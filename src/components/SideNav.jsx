@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   TouchableOpacity,
@@ -12,41 +12,50 @@ import { useAuthStore } from "../store/authStore";
 
 const SideNav = () => {
   const navigation = useNavigation();
-
   const { user } = useAuthStore();
 
-  const navItems = [
-    {
-      icon: <Home color="#fff" size={24} />,
-      screen: "Home",
-    },
-    {
-      icon: <Compass color="#fff" size={24} />,
-      screen: "ExploreFriends",
-    },
-    {
-      icon: <PlusCircle color="#fff" size={30} />,
-      screen: "CreatePost",
-      isSpecial: true,
-    },
-    {
-      icon: <Bookmark color="#fff" size={24} />,
-      screen: "SavedPosts",
-    },
-    {
-      icon: (
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Profile", { id: user._id })}
-        >
-          <Image
-            source={{ uri: user.profileImage }}
-            style={styles.profileImage}
-          />
-        </TouchableOpacity>
-      ),
-      screen: "Profile",
-    },
-  ];
+  // Use useMemo to recreate navItems when user changes
+  const navItems = useMemo(
+    () => [
+      {
+        icon: <Home color="#fff" size={24} />,
+        screen: "Home",
+      },
+      {
+        icon: <Compass color="#fff" size={24} />,
+        screen: "ExploreFriends",
+      },
+      {
+        icon: <PlusCircle color="#fff" size={30} />,
+        screen: "CreatePost",
+        isSpecial: true,
+      },
+      {
+        icon: <Bookmark color="#fff" size={24} />,
+        screen: "SavedPosts",
+      },
+      {
+        icon: (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Profile", { id: user?._id })}
+          >
+            <Image
+              source={{
+                uri: user?.profileImage || "https://example.com/default.jpg",
+              }}
+              style={styles.profileImage}
+              // Add key to force re-render when image changes
+              key={user?.profileImage || "default"}
+            />
+          </TouchableOpacity>
+        ),
+        screen: "Profile",
+      },
+    ],
+    [user, navigation]
+  ); // Dependencies array includes user to re-create when user changes
+
+  console.log("SideNav rendering with profile image:", user?.profileImage);
 
   return (
     <View style={styles.container}>
@@ -57,7 +66,7 @@ const SideNav = () => {
             styles.navItem,
             item.isSpecial ? styles.specialButtonContainer : null,
           ]}
-          onPress={() => navigation.navigate(item.screen, { id: user._id })}
+          onPress={() => navigation.navigate(item.screen, { id: user?._id })}
         >
           <View
             style={[styles.icon, item.isSpecial ? styles.glowEffect : null]}
@@ -119,9 +128,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.1 }],
   },
   profileImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: "#E9D5FF", // Light purple border around profile pic
   },

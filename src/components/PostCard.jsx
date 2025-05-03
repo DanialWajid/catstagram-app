@@ -1,21 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
-import { 
-  View, 
-  Text, 
-  Image, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
   Alert,
-  Modal
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Heart, MessageCircle, MoreVertical, Edit, Trash2, User, Bookmark } from 'lucide-react-native';
-import { format } from 'date-fns';
-import { savePost, unsavePost } from '../services/savedPosts.services';
-import { likePost, unlikePost } from '../services/likedPosts.services';
-import axios from 'axios';
-import CommentSection from './CommentSection';
+  Modal,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import {
+  Heart,
+  MessageCircle,
+  MoreVertical,
+  Edit,
+  Trash2,
+  User,
+  Bookmark,
+} from "lucide-react-native";
+import { format } from "date-fns";
+import { savePost, unsavePost } from "../services/savedPosts.services";
+import { likePost, unlikePost } from "../services/likedPosts.services";
+import axios from "axios";
+import CommentSection from "./CommentSection";
 
 const PostCard = ({ post, user }) => {
   const [isSaved, setIsSaved] = useState(false);
@@ -25,10 +33,14 @@ const PostCard = ({ post, user }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const navigation = useNavigation();
-  
+
   useEffect(() => {
     if (user?._id) {
-      setIsSaved(post.savedBy?.some((savedId) => savedId.toString() === user._id.toString()) || false);
+      setIsSaved(
+        post.savedBy?.some(
+          (savedId) => savedId.toString() === user._id.toString()
+        ) || false
+      );
       setIsLiked(post.likes?.includes(user._id) || false);
     }
   }, [user, post.savedBy, post.likes]);
@@ -43,8 +55,8 @@ const PostCard = ({ post, user }) => {
         setIsSaved(true);
       }
     } catch (error) {
-      console.error('Error toggling save:', error);
-      Alert.alert('Error', 'Failed to save/unsave post');
+      console.error("Error toggling save:", error);
+      Alert.alert("Error", "Failed to save/unsave post");
     }
   };
 
@@ -60,69 +72,69 @@ const PostCard = ({ post, user }) => {
         setLikeCount((prev) => prev + 1);
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
-      Alert.alert('Error', 'Failed to like/unlike post');
+      console.error("Error toggling like:", error);
+      Alert.alert("Error", "Failed to like/unlike post");
     }
   };
 
   const handleDeletePost = async () => {
     try {
       const token = await SecureStore.getItemAsync("token");
-      
-      Alert.alert(
-        'Delete Post',
-        'Are you sure you want to delete this post?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Delete',
-            onPress: async () => {
-              try {
-                const response = await axios.delete(
-                  `http://192.168.0.110:8000/api/posts/${post._id}`,
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                  }
-                );
-                
-                if (response.data.success) {
-                  Alert.alert('Success', 'Post deleted successfully');
-                  // Add any state update or navigation here
-                  // navigation.goBack(); or update local state
+
+      Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              const response = await axios.delete(
+                `http://192.168.0.105:8000/api/posts/${post._id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
                 }
-              } catch (error) {
-                console.error('Delete error:', error.response?.data || error.message);
-                Alert.alert(
-                  'Error', 
-                  error.response?.data?.message || 'Failed to delete post'
-                );
+              );
+
+              if (response.data.success) {
+                Alert.alert("Success", "Post deleted successfully");
+                // Add any state update or navigation here
+                // navigation.goBack(); or update local state
               }
-            },
-            style: 'destructive',
+            } catch (error) {
+              console.error(
+                "Delete error:",
+                error.response?.data || error.message
+              );
+              Alert.alert(
+                "Error",
+                error.response?.data?.message || "Failed to delete post"
+              );
+            }
           },
-        ]
-      );
+          style: "destructive",
+        },
+      ]);
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'An unexpected error occurred');
+      console.error("Error:", error);
+      Alert.alert("Error", "An unexpected error occurred");
     }
   };
 
-  const formatCount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
+  const formatCount = (count, singular) =>
+    `${count} ${count === 1 ? singular : `${singular}s`}`;
 
   if (!post || !post.user) return null;
 
   return (
     <View style={[styles.container, styles.darkContainer]}>
       <View style={styles.header}>
-      <TouchableOpacity 
+        <TouchableOpacity
           style={styles.userInfo}
-          onPress={() => navigation.navigate('Profile', { id: post.user._id })}
+          onPress={() => navigation.navigate("Profile", { id: post.user._id })}
         >
           {post.user.profileImage ? (
             <Image
@@ -130,16 +142,18 @@ const PostCard = ({ post, user }) => {
               style={styles.userImage}
             />
           ) : (
-            <View style={[styles.userImageFallback, styles.darkUserImageFallback]}>
+            <View
+              style={[styles.userImageFallback, styles.darkUserImageFallback]}
+            >
               <User size={24} color="#fff" />
             </View>
           )}
           <View>
             <Text style={[styles.userName, styles.darkText]}>
-              {post.user.name || 'User Name'}
+              {post.user.name || "User Name"}
             </Text>
             <Text style={styles.timestamp}>
-              {format(new Date(post.createdAt), 'dd MMMM, yyyy, hh:mm a')}
+              {format(new Date(post.createdAt), "dd MMMM, yyyy, hh:mm a")}
             </Text>
           </View>
         </TouchableOpacity>
@@ -149,21 +163,23 @@ const PostCard = ({ post, user }) => {
             <TouchableOpacity onPress={() => setShowDropdown(!showDropdown)}>
               <MoreVertical size={20} color="#a1a1aa" />
             </TouchableOpacity>
-            
+
             {showDropdown && (
               <View style={[styles.dropdown, styles.darkDropdown]}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.dropdownItem}
                   onPress={() => {
                     setShowDropdown(false);
-                    navigation.navigate('EditPost', { id: post._id });
+                    navigation.navigate("EditPost", { id: post._id });
                   }}
                 >
                   <Edit size={16} color="#fff" />
-                  <Text style={[styles.dropdownText, styles.darkText]}>Edit</Text>
+                  <Text style={[styles.dropdownText, styles.darkText]}>
+                    Edit
+                  </Text>
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.dropdownItem}
                   onPress={() => {
                     setShowDropdown(false);
@@ -181,43 +197,56 @@ const PostCard = ({ post, user }) => {
 
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: post.image || 'https://via.placeholder.com/600x600' }}
+          source={{ uri: post.image || "https://via.placeholder.com/600x600" }}
           style={styles.postImage}
           resizeMode="cover"
         />
       </View>
 
       <Text style={[styles.caption, styles.darkText]}>
-        {post.caption || 'Caption'}
+        {post.caption || "Caption"}
       </Text>
 
       <View style={styles.actions}>
         <View style={styles.actionGroup}>
-          <TouchableOpacity onPress={toggleLikePost} style={styles.actionButton}>
-            <Heart 
-              size={20} 
-              color={isLiked ? '#ef4444' : '#a1a1aa'} 
-              fill={isLiked ? '#ef4444' : 'transparent'} 
+          <TouchableOpacity
+            onPress={toggleLikePost}
+            style={styles.actionButton}
+          >
+            <Heart
+              size={20}
+              color={isLiked ? "#ef4444" : "#a1a1aa"}
+              fill={isLiked ? "#ef4444" : "transparent"}
             />
           </TouchableOpacity>
-          <Text style={styles.actionText}>{formatCount(likeCount, 'Like')}</Text>
+          <Text style={styles.actionText}>
+            {formatCount(likeCount, "Like")}
+          </Text>
         </View>
 
         <View style={styles.actionGroup}>
-          <TouchableOpacity onPress={() => setIsCommentModalOpen(true)} style={styles.actionButton}>
+          <TouchableOpacity
+            onPress={() => setIsCommentModalOpen(true)}
+            style={styles.actionButton}
+          >
             <MessageCircle size={20} color="#a1a1aa" />
           </TouchableOpacity>
-          <Text style={styles.actionText}>{formatCount(commentCount, 'Comment')}</Text>
+          <Text style={styles.actionText}>
+            {formatCount(commentCount, "Comment")}
+          </Text>
         </View>
 
         <View style={styles.actionGroup}>
-          <TouchableOpacity onPress={toggleSavePost} style={styles.actionButton}>
-            <Bookmark 
-              filled={isSaved} 
-              color={isSaved ? '#10b981' : '#a1a1aa'} 
+          <TouchableOpacity
+            onPress={toggleSavePost}
+            style={styles.actionButton}
+          >
+            <Bookmark
+              filled={isSaved}
+              color={isSaved ? "#10b981" : "#a1a1aa"}
             />
           </TouchableOpacity>
-          <Text style={styles.actionText}>{isSaved ? 'Saved' : 'Save'}</Text>
+          <Text style={styles.actionText}>{isSaved ? "Saved" : "Save"}</Text>
         </View>
       </View>
 
@@ -229,16 +258,18 @@ const PostCard = ({ post, user }) => {
       >
         <View style={styles.commentModalContainer}>
           <View style={[styles.commentModalContent, styles.darkCommentModal]}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setIsCommentModalOpen(false)}
             >
-              <Text style={[styles.closeButtonText, styles.darkText]}>Close</Text>
+              <Text style={[styles.closeButtonText, styles.darkText]}>
+                Close
+              </Text>
             </TouchableOpacity>
-            <CommentSection 
-              postId={post._id} 
-              userId={user._id} 
-              onCommentCountChange={setCommentCount} 
+            <CommentSection
+              postId={post._id}
+              userId={user._id}
+              onCommentCountChange={setCommentCount}
             />
           </View>
         </View>
@@ -247,13 +278,12 @@ const PostCard = ({ post, user }) => {
   );
 };
 
-
 export default PostCard;
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -263,19 +293,19 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1 }],
   },
   darkContainer: {
-    backgroundColor: '#111',
+    backgroundColor: "#111",
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   userImage: {
     width: 40,
@@ -283,53 +313,53 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 12,
     borderWidth: 2,
-    borderColor: '#a855f7',
+    borderColor: "#a855f7",
   },
   userImageFallback: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 2,
-    borderColor: '#a855f7',
+    borderColor: "#a855f7",
   },
   darkUserImageFallback: {
-    backgroundColor: '#4b5563',
+    backgroundColor: "#4b5563",
   },
   userName: {
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 14,
   },
   darkText: {
-    color: '#fff',
+    color: "#fff",
   },
   timestamp: {
     fontSize: 12,
-    color: '#a1a1aa',
+    color: "#a1a1aa",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
     padding: 16,
   },
   dropdown: {
     width: 120,
     borderRadius: 8,
-    overflow: 'hidden',
-    position: 'absolute',
+    overflow: "hidden",
+    position: "absolute",
     top: 60,
     right: 16,
   },
   darkDropdown: {
-    backgroundColor: '#333',
+    backgroundColor: "#333",
   },
   dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
   },
   dropdownText: {
@@ -339,75 +369,75 @@ const styles = StyleSheet.create({
   deleteText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#ef4444',
+    color: "#ef4444",
   },
   imageContainer: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 1,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 12,
   },
   postImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   caption: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 12,
   },
   actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   actionGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   actionButton: {
     padding: 8,
   },
   actionText: {
     fontSize: 12,
-    color: '#a1a1aa',
+    color: "#a1a1aa",
     marginLeft: 4,
   },
   commentModalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   commentModalContent: {
-    height: '80%',
+    height: "80%",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,
   },
   darkCommentModal: {
-    backgroundColor: '#111',
+    backgroundColor: "#111",
   },
   closeButton: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     padding: 8,
     marginBottom: 8,
   },
   closeButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   dropdownContainer: {
-    position: 'relative',
+    position: "relative",
     zIndex: 1,
   },
   dropdown: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     top: 30,
     width: 120,
     borderRadius: 8,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,

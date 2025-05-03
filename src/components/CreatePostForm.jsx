@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import {
   View,
@@ -11,25 +11,25 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Platform
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Camera, Check } from 'lucide-react-native';
+  Platform,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Camera, Check } from "lucide-react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming
-} from 'react-native-reanimated';
+  withTiming,
+} from "react-native-reanimated";
 
 const CreatePostForm = ({ navigation }) => {
-  const [caption, setCaption] = useState('');
+  const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   const scale = useSharedValue(1);
-  
+
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
+    transform: [{ scale: scale.value }],
   }));
 
   const handlePressIn = () => {
@@ -42,9 +42,12 @@ const CreatePostForm = ({ navigation }) => {
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'We need camera roll permissions to upload images.');
+
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "We need camera roll permissions to upload images."
+      );
       return;
     }
 
@@ -62,12 +65,12 @@ const CreatePostForm = ({ navigation }) => {
 
   const handleSubmit = async () => {
     if (!caption.trim()) {
-      Alert.alert('Missing Information', 'Please provide a caption.');
+      Alert.alert("Missing Information", "Please provide a caption.");
       return;
     }
 
     if (!image) {
-      Alert.alert('Missing Image', 'Please select an image for your post.');
+      Alert.alert("Missing Image", "Please select an image for your post.");
       return;
     }
 
@@ -75,41 +78,42 @@ const CreatePostForm = ({ navigation }) => {
 
     try {
       const formData = new FormData();
-      formData.append('caption', caption);
-      
-      const filename = image.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `profileImage/${match[1]}` : 'profileImage';
+      formData.append("caption", caption);
 
-      formData.append('profileImage', {
-        uri: Platform.OS === 'ios' ? image.replace('file://', '') : image,
+      const filename = image.split("/").pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `profileImage/${match[1]}` : "profileImage";
+
+      formData.append("profileImage", {
+        uri: Platform.OS === "ios" ? image.replace("file://", "") : image,
         name: filename,
-        type
+        type,
       });
 
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        'http://192.168.0.110:8000/api/posts',
+        "http://192.168.0.105:8000/api/posts",
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       if (response.data.success) {
-        Alert.alert('Success', 'Post created successfully!');
+        Alert.alert("Success", "Post created successfully!");
         navigation.goBack();
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to create post');
+        Alert.alert("Error", response.data.message || "Failed to create post");
       }
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error("Error creating post:", error);
       Alert.alert(
-        'Error', 
-        error.response?.data?.message || 'An error occurred while creating the post.'
+        "Error",
+        error.response?.data?.message ||
+          "An error occurred while creating the post."
       );
     } finally {
       setLoading(false);
@@ -117,7 +121,7 @@ const CreatePostForm = ({ navigation }) => {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       keyboardShouldPersistTaps="handled"
@@ -139,14 +143,14 @@ const CreatePostForm = ({ navigation }) => {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Image</Text>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.imagePickerButton}
             onPress={pickImage}
           >
             <Camera size={24} color="#f9fafb" />
             <Text style={styles.imagePickerText}>
-              {image ? 'Change Image' : 'Select Image'}
+              {image ? "Change Image" : "Select Image"}
             </Text>
           </TouchableOpacity>
 
@@ -168,7 +172,7 @@ const CreatePostForm = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (!caption.trim() || !image || loading) && styles.disabledButton
+              (!caption.trim() || !image || loading) && styles.disabledButton,
             ]}
             onPress={handleSubmit}
             disabled={!caption.trim() || !image || loading}
@@ -190,16 +194,16 @@ const CreatePostForm = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: "#111827",
   },
   contentContainer: {
     padding: 16,
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -207,19 +211,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 24,
-    textAlign: 'center',
-    color: '#f9fafb',
+    textAlign: "center",
+    color: "#f9fafb",
   },
   inputContainer: {
     marginBottom: 16,
   },
   label: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   input: {
     borderWidth: 1,
@@ -227,42 +231,42 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     minHeight: 100,
-    textAlignVertical: 'top',
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
-    color: '#f9fafb',
+    textAlignVertical: "top",
+    backgroundColor: "#1f2937",
+    borderColor: "#374151",
+    color: "#f9fafb",
   },
   imagePickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderStyle: 'dashed',
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    borderStyle: "dashed",
+    backgroundColor: "#1f2937",
+    borderColor: "#374151",
   },
   imagePickerText: {
     marginLeft: 8,
     fontSize: 16,
-    color: '#f9fafb',
+    color: "#f9fafb",
   },
   imagePreviewContainer: {
     marginTop: 16,
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
   },
   imagePreview: {
-    width: '100%',
+    width: "100%",
     height: 300,
     borderRadius: 8,
   },
   imageSelectedIndicator: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: '#10b981',
+    backgroundColor: "#10b981",
     borderRadius: 12,
     padding: 4,
   },
@@ -272,17 +276,17 @@ const styles = StyleSheet.create({
   submitButton: {
     height: 50,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2563eb',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563eb",
   },
   disabledButton: {
     opacity: 0.5,
   },
   submitButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
