@@ -1,10 +1,9 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { 
   View, 
   Text, 
   TextInput, 
   TouchableOpacity, 
-  Modal, 
   StyleSheet, 
   KeyboardAvoidingView, 
   Platform,
@@ -73,7 +72,7 @@ const ChangePasswordModal = ({ onClose }) => {
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [validationError, setValidationError] = useState('');
   
-  const { changePassword, isLoading, error, message } = useAuthStore();
+  const { changePassword, isLoading, error, message, clearError } = useAuthStore();
     
   const scale = useSharedValue(1);
   
@@ -84,8 +83,20 @@ const ChangePasswordModal = ({ onClose }) => {
   const handlePressIn = () => scale.value = withSpring(0.95);
   const handlePressOut = () => scale.value = withSpring(1);
 
+  useEffect(() => {
+    // Clear error when component mounts
+    return () => {
+      clearError();
+    };
+  }, []);
+
   const handleSubmit = async () => {
     setValidationError('');
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setValidationError('All fields are required');
+      return;
+    }
 
     if (newPassword.length < 8) {
       setValidationError('New password must be at least 8 characters long');
@@ -104,7 +115,11 @@ const ChangePasswordModal = ({ onClose }) => {
 
     try {
       await changePassword(currentPassword, newPassword);
-      if (!error) onClose();
+      if (!error) {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -118,79 +133,72 @@ const ChangePasswordModal = ({ onClose }) => {
   };
 
   return (
-    <Modal
-      animationType="fade"
-      transparent
-      visible
-      onRequestClose={onClose}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.centeredView}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.centeredView}
-      >
-        <Pressable style={styles.backdrop} onPress={onClose} />
+      <Pressable style={styles.backdrop} onPress={onClose} />
+      
+      <View style={[styles.modalView, { backgroundColor: modalColors.background }]}>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <X size={24} color={modalColors.icon} />
+        </TouchableOpacity>
         
-        <View style={[styles.modalView, { backgroundColor: modalColors.background }]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={24} color={modalColors.icon} />
-          </TouchableOpacity>
-          
-          <Text style={[styles.title, { color: modalColors.text }]}>
-            Change Password
-          </Text>
-          
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          {message && <Text style={styles.successText}>{message}</Text>}
-          {validationError && <Text style={styles.errorText}>{validationError}</Text>}
+        <Text style={[styles.title, { color: modalColors.text }]}>
+          Change Password
+        </Text>
+        
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        {message && <Text style={styles.successText}>{message}</Text>}
+        {validationError && <Text style={styles.errorText}>{validationError}</Text>}
 
-          <View style={styles.form}>
-            <PasswordInput
-              label="Current Password"
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-              secureTextEntry={!showCurrentPassword}
-              toggleVisibility={() => setShowCurrentPassword(!showCurrentPassword)}
-              showPassword={showCurrentPassword}
-              required
-            />
-            
-            <PasswordInput
-              label="New Password"
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry={!showNewPassword}
-              toggleVisibility={() => setShowNewPassword(!showNewPassword)}
-              showPassword={showNewPassword}
-              required
-            />
-            
-            <PasswordInput
-              label="Confirm New Password"
-              value={confirmNewPassword}
-              onChangeText={setConfirmNewPassword}
-              secureTextEntry={!showConfirmNewPassword}
-              toggleVisibility={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-              showPassword={showConfirmNewPassword}
-              required
-            />
+        <View style={styles.form}>
+          <PasswordInput
+            label="Current Password"
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            secureTextEntry={!showCurrentPassword}
+            toggleVisibility={() => setShowCurrentPassword(!showCurrentPassword)}
+            showPassword={showCurrentPassword}
+            required
+          />
+          
+          <PasswordInput
+            label="New Password"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry={!showNewPassword}
+            toggleVisibility={() => setShowNewPassword(!showNewPassword)}
+            showPassword={showNewPassword}
+            required
+          />
+          
+          <PasswordInput
+            label="Confirm New Password"
+            value={confirmNewPassword}
+            onChangeText={setConfirmNewPassword}
+            secureTextEntry={!showConfirmNewPassword}
+            toggleVisibility={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+            showPassword={showConfirmNewPassword}
+            required
+          />
 
-            <Animated.View style={animatedStyle}>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: modalColors.button }]}
-                onPress={handleSubmit}
-                disabled={isLoading}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-              >
-                <Text style={styles.buttonText}>
-                  {isLoading ? 'Changing...' : 'Change Password'}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
+          <Animated.View style={animatedStyle}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: modalColors.button }]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+            >
+              <Text style={styles.buttonText}>
+                {isLoading ? 'Changing...' : 'Change Password'}
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 

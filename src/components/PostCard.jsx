@@ -82,7 +82,7 @@ const PostCard = ({ post, user }) => {
             onPress: async () => {
               try {
                 const response = await axios.delete(
-                  `http://192.168.100.165:8000/api/posts/${post._id}`,
+                  `http://192.168.0.110:8000/api/posts/${post._id}`,
                   {
                     headers: {
                       Authorization: `Bearer ${token}`,

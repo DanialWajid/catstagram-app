@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
   LogOut,
@@ -9,23 +9,21 @@ import {
   Menu as HamburgerIcon,
   X as CloseIcon,
   UserPlus,
+  Key
 } from "lucide-react-native";
+import ChangePasswordModal from "./ChangePasswordModal"; // Import the modal component
 
-// Import logo - you'll need to adjust this based on your React Native project structure
 const logo = require("../assets/images/logo.jpg");
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const navigation = useNavigation();
 
   const handleLogout = () => {
-    // Implement your logout logic here
-    // For example:
-    // logout();
     navigation.navigate("Login");
   };
 
-  // Toggle menu handler
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -90,6 +88,22 @@ const Navbar = () => {
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
+              setShowPasswordModal(true);
+              toggleMenu();
+            }}
+          >
+            <Key
+              width={20}
+              height={20}
+              color="#FFFFFF"
+              style={styles.menuIcon}
+            />
+            <Text style={styles.menuText}>Change Password</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
               handleLogout();
               toggleMenu();
             }}
@@ -104,10 +118,19 @@ const Navbar = () => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Change Password Modal */}
+      <Modal
+        visible={showPasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
+      </Modal>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     width: "100%",

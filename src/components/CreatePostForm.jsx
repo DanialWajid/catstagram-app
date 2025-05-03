@@ -89,7 +89,7 @@ const CreatePostForm = ({ navigation }) => {
 
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        'http://192.168.100.165:8000/api/posts',
+        'http://192.168.0.110:8000/api/posts',
         formData,
         {
           headers: {

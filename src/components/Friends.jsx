@@ -22,7 +22,7 @@ const Friends = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
 
-  const API_URL = "http://192.168.100.165:8000";
+  const API_URL = "http://192.168.0.110:8000";
 
   useEffect(() => {
     fetchData();

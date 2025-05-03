@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL ="http://192.168.100.165:8000/api/liked-posts"
+const API_URL ="http://192.168.0.110:8000/api/liked-posts"
 
 export const likePost = async (userId, postId) => {
   try {

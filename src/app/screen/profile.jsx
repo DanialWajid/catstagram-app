@@ -75,7 +75,9 @@ const Profile = () => {
   const handleDeleteAccount = async () => {
     try {
       
-      await deleteAccount(id);
+    await deleteAccount(id);
+    navigation.navigate("Signup")
+
     } catch (error) {
       console.error("Error deleting account:", error);
       Alert.alert("Error", "Failed to delete account. Please try again.");

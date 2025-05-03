@@ -14,7 +14,7 @@ const getApiUrl = () => {
   }
 
   // Physical device (replace with your computer's IP)
-  return "http://192.168.100.165:8000/api/user";
+  return "http://192.168.0.110:8000/api/user";
 };
 
 const API_URL = getApiUrl();
@@ -192,7 +192,23 @@ export const useAuthStore = create((set) => ({
       return { success: false, error: error.message };
     }
   },
-
+  changePassword: async (currentPassword, newPassword) => {
+    set({ isLoading: true, error: null, message: null });
+    try {
+      const token = await SecureStore.getItemAsync("token");
+      const response = await axios.post(
+        `${API_URL}/change-password`,
+        { currentPassword, newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      set({ message: "Password changed successfully", isLoading: false });
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to change password",
+        isLoading: false,
+      });
+    }
+  },
   // Logout function
   logout: async () => {
     try {
