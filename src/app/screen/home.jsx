@@ -25,7 +25,7 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
-  const API_URL = "http://192.168.0.105:8000/api";
+  const API_URL = "http://192.168.100.87:8000/api";
   const LIMIT = 5;
 
   // Initial load

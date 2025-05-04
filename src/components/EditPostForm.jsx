@@ -99,7 +99,7 @@ const EditPostForm = ({ post }) => {
       }
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        `http://192.168.0.105:8000/api/posts/edit/${post._id}`,
+        `http://192.168.100.87:8000/api/posts/edit/${post._id}`,
         formData,
         {
           headers: {
