@@ -16,7 +16,7 @@ import { User, Ban } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "../store/authStore";
 
-const API_URL = "http://192.168.100.87:8000/api";
+const API_URL = "http://192.168.0.123:8000/api";
 
 const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const navigation = useNavigation();

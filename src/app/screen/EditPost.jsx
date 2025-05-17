@@ -30,7 +30,7 @@ const EditPost= () => {
         }
     
         const response = await axios.get(
-          `http://192.168.100.87:8000/api/posts/edit/${id}`,
+          `http://192.168.0.123:8000/api/posts/edit/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
