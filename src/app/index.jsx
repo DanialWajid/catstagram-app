@@ -13,8 +13,10 @@ import EditPost from "./screen/EditPost";
 import CreatePost from "./screen/CreatePost";
 import Friends from "./screen/Friends";
 import Requests from "./screen/Requests";
-import ChatPage from "./screen/ChatPage"; // Add this import
-import ChatMessage from "./screen/ChatMessage"; // Add this import
+import ChatPage from "./screen/ChatPage";
+import ChatMessage from "./screen/ChatMessage";
+import CreateGroupChat from "./screen/CreateGroupChat"; // Add this import
+import GroupChatSettings from "./screen/GroupChatSettings"; // Add this import for group settings
 import { useAuthStore } from "../store/authStore";
 import * as Font from "expo-font";
 import { ActivityIndicator, View } from "react-native";
@@ -59,9 +61,13 @@ const App = () => {
       <Stack.Screen name="ExploreFriends" component={FriendsExplore} />
       <Stack.Screen name="FriendRequests" component={Requests} />
       <Stack.Screen name="Home" component={Home} />
-      {/* Add the new chat screens */}
+
+      {/* Chat related screens */}
       <Stack.Screen name="chat" component={ChatPage} />
       <Stack.Screen name="ChatMessage" component={ChatMessage} />
+      <Stack.Screen name="CreateGroupChat" component={CreateGroupChat} />
+      <Stack.Screen name="GroupChatSettings" component={GroupChatSettings} />
+
       <Stack.Screen
         name="Profile"
         component={Profile}

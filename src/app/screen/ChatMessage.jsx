@@ -11,24 +11,68 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Animated,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
-import { User, Send } from "lucide-react-native";
-import {
-  useNavigation,
-  useRoute,
-  useFocusEffect,
-} from "@react-navigation/native";
+import { User, Send, Users, Settings } from "lucide-react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import SocketService from "../../services/socket";
+
+const TypingIndicator = ({ typingUsers }) => {
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (typingUsers.length > 0) {
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [typingUsers.length]);
+
+  if (typingUsers.length === 0) return null;
+
+  const getTypingText = () => {
+    if (typingUsers.length === 1) {
+      return `${typingUsers[0].name} is typing...`;
+    } else if (typingUsers.length === 2) {
+      return `${typingUsers[0].name} and ${typingUsers[1].name} are typing...`;
+    } else {
+      return `${typingUsers[0].name} and ${
+        typingUsers.length - 1
+      } others are typing...`;
+    }
+  };
+
+  return (
+    <Animated.View style={[styles.typingContainer, { opacity }]}>
+      <View style={styles.typingBubble}>
+        <Text style={styles.typingText}>{getTypingText()}</Text>
+        <View style={styles.typingDots}>
+          <View style={[styles.dot, styles.dot1]} />
+          <View style={[styles.dot, styles.dot2]} />
+          <View style={[styles.dot, styles.dot3]} />
+        </View>
+      </View>
+    </Animated.View>
+  );
+};
 
 const ChatMessage = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const { user } = useAuthStore();
@@ -53,10 +97,8 @@ const ChatMessage = () => {
   const setupSocket = () => {
     console.log("Setting up socket connection...");
 
-    // Connect to socket
-    SocketService.connect(user._id);
+    SocketService.connect(user._id, user.name);
 
-    // Check connection status periodically
     const checkConnection = setInterval(() => {
       const connected = SocketService.getConnectionStatus();
       setSocketConnected(connected);
@@ -68,40 +110,41 @@ const ChatMessage = () => {
       }
     }, 1000);
 
-    // Listen for new messages
     SocketService.onMessageReceived((newMessage) => {
       console.log("New message received in component:", newMessage);
       setMessages((prevMessages) => {
-        // Check if message already exists to avoid duplicates
         const messageExists = prevMessages.some(
           (msg) => msg._id === newMessage._id
         );
         if (!messageExists) {
-          console.log("Adding new message to state");
           return [...prevMessages, newMessage];
         }
-        console.log("Message already exists, skipping");
         return prevMessages;
       });
 
-      // Auto scroll to bottom when new message arrives
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     });
 
-    // Listen for typing indicators
-    SocketService.onTyping(() => {
-      console.log("Someone is typing...");
-      setIsTyping(true);
+    SocketService.onTyping((data) => {
+      console.log("Typing event received:", data);
+      if (data.user._id !== user._id) {
+        setTypingUsers((prev) => {
+          const exists = prev.find((u) => u._id === data.user._id);
+          if (!exists) {
+            return [...prev, data.user];
+          }
+          return prev;
+        });
+      }
     });
 
-    SocketService.onStopTyping(() => {
-      console.log("Stopped typing");
-      setIsTyping(false);
+    SocketService.onStopTyping((data) => {
+      console.log("Stop typing event received:", data);
+      setTypingUsers((prev) => prev.filter((u) => u._id !== data.user._id));
     });
 
-    // Cleanup interval on unmount
     return () => {
       clearInterval(checkConnection);
     };
@@ -112,6 +155,7 @@ const ChatMessage = () => {
     SocketService.offMessageReceived();
     SocketService.offTyping();
     SocketService.hasJoinedChat = false;
+    setTypingUsers([]);
   };
 
   const fetchMessages = async () => {
@@ -127,7 +171,6 @@ const ChatMessage = () => {
       console.log("Fetched", response.data.length, "messages");
       setMessages(response.data);
 
-      // Scroll to bottom after loading messages
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 500);
@@ -145,7 +188,7 @@ const ChatMessage = () => {
 
     const messageContent = newMessage.trim();
     console.log("Sending message:", messageContent);
-    setNewMessage(""); // Clear input immediately for better UX
+    setNewMessage("");
 
     try {
       setSending(true);
@@ -165,32 +208,24 @@ const ChatMessage = () => {
       const sentMessage = response.data;
       console.log("Message sent successfully:", sentMessage);
 
-      // Add the new message to the list immediately
       setMessages((prevMessages) => [...prevMessages, sentMessage]);
 
-      // Emit the message through socket to other users
       if (socketConnected) {
-        console.log("Emitting message via socket...");
         SocketService.sendMessage(sentMessage);
-      } else {
-        console.log("Socket not connected, message not emitted");
       }
 
-      // Stop typing indicator
       if (typingTimeout) {
         clearTimeout(typingTimeout);
         setTypingTimeout(null);
       }
       SocketService.stopTyping(chatId);
 
-      // Scroll to bottom
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
       console.error("Error sending message:", error);
       Alert.alert("Error", "Failed to send message");
-      // Restore the message if sending failed
       setNewMessage(messageContent);
     } finally {
       setSending(false);
@@ -202,15 +237,12 @@ const ChatMessage = () => {
 
     if (!socketConnected) return;
 
-    // Start typing indicator
     SocketService.startTyping(chatId);
 
-    // Clear existing timeout
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
 
-    // Stop typing after 3 seconds of inactivity
     const timeout = setTimeout(() => {
       SocketService.stopTyping(chatId);
     }, 3000);
@@ -219,19 +251,31 @@ const ChatMessage = () => {
   };
 
   const getChatDisplayInfo = () => {
-    if (!chatData) return { name: "Chat", image: null };
+    if (!chatData) return { name: "Chat", image: null, isGroup: false };
 
     if (chatData.isGroupChat) {
       return {
         name: chatData.chatName,
         image: null,
+        isGroup: true,
+        memberCount: chatData.users.length,
       };
     } else {
       const otherUser = chatData.users.find((u) => u._id !== user._id);
       return {
         name: otherUser?.name || "Unknown User",
         image: otherUser?.profileImage || otherUser?.pic,
+        isGroup: false,
       };
+    }
+  };
+
+  const navigateToGroupSettings = () => {
+    if (chatData?.isGroupChat) {
+      navigation.navigate("GroupChatSettings", {
+        chatId: chatId,
+        chatData: chatData,
+      });
     }
   };
 
@@ -291,8 +335,15 @@ const ChatMessage = () => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
-        <View style={styles.headerUserInfo}>
-          {displayInfo.image ? (
+        <TouchableOpacity
+          style={styles.headerUserInfo}
+          onPress={displayInfo.isGroup ? navigateToGroupSettings : undefined}
+        >
+          {displayInfo.isGroup ? (
+            <View style={styles.groupHeaderAvatar}>
+              <Users size={20} color="#9333EA" />
+            </View>
+          ) : displayInfo.image ? (
             <Image
               source={{ uri: displayInfo.image }}
               style={styles.headerAvatar}
@@ -303,13 +354,28 @@ const ChatMessage = () => {
             </View>
           )}
           <View>
-            <Text style={styles.headerUserName}>{displayInfo.name}</Text>
-            {isTyping && <Text style={styles.typingIndicator}>typing...</Text>}
+            <Text style={styles.headerUserName}>
+              {displayInfo.name}
+              {displayInfo.isGroup && (
+                <Text style={styles.memberCountHeader}>
+                  {" "}
+                  ({displayInfo.memberCount})
+                </Text>
+              )}
+            </Text>
+            {socketConnected && <Text style={styles.onlineStatus}>Online</Text>}
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Connection status indicator */}
-        <View style={styles.connectionStatus}>
+        <View style={styles.headerActions}>
+          {displayInfo.isGroup && (
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={navigateToGroupSettings}
+            >
+              <Settings size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
           <View
             style={[
               styles.connectionDot,
@@ -336,10 +402,13 @@ const ChatMessage = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              No messages yet. Start the conversation!
+              {displayInfo.isGroup
+                ? "Welcome to the group! Start the conversation!"
+                : "No messages yet. Start the conversation!"}
             </Text>
           </View>
         }
+        ListFooterComponent={<TypingIndicator typingUsers={typingUsers} />}
       />
 
       {/* Input */}
@@ -348,7 +417,9 @@ const ChatMessage = () => {
           style={styles.textInput}
           value={newMessage}
           onChangeText={handleTyping}
-          placeholder="Type a message..."
+          placeholder={`Message ${
+            displayInfo.isGroup ? displayInfo.name : displayInfo.name
+          }...`}
           placeholderTextColor="#9ca3af"
           multiline
           maxLength={500}
@@ -437,18 +508,38 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 8,
   },
+  groupHeaderAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#1e1b4b",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: "#9333EA",
+  },
   headerUserName: {
     fontSize: 18,
     fontWeight: "600",
     color: "#f9fafb",
   },
-  typingIndicator: {
-    fontSize: 12,
-    color: "#9333EA",
-    fontStyle: "italic",
+  memberCountHeader: {
+    fontSize: 14,
+    color: "#9ca3af",
+    fontWeight: "normal",
   },
-  connectionStatus: {
+  onlineStatus: {
+    fontSize: 12,
+    color: "#10b981",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  settingsButton: {
     padding: 8,
+    marginRight: 8,
   },
   connectionDot: {
     width: 8,
@@ -510,6 +601,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#9ca3af",
     textAlign: "center",
+  },
+  typingContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  typingBubble: {
+    backgroundColor: "#374151",
+    borderRadius: 16,
+    padding: 12,
+    maxWidth: "80%",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  typingText: {
+    color: "#9ca3af",
+    fontSize: 14,
+    marginRight: 8,
+  },
+  typingDots: {
+    flexDirection: "row",
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#9ca3af",
+    marginHorizontal: 1,
+  },
+  dot1: {
+    opacity: 0.4,
+  },
+  dot2: {
+    opacity: 0.7,
+  },
+  dot3: {
+    opacity: 1,
   },
   inputContainer: {
     flexDirection: "row",

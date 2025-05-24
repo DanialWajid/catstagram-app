@@ -4,11 +4,14 @@ class SocketService {
   constructor() {
     this.socket = null;
     this.isConnected = false;
+    this.currentUser = null;
   }
 
-  connect(userId) {
+  connect(userId, userName) {
     if (!this.socket) {
       console.log("Connecting to socket server...");
+      this.currentUser = { _id: userId, name: userName };
+
       this.socket = io("http://192.168.0.107:8000", {
         transports: ["websocket"],
         timeout: 60000,
@@ -18,11 +21,11 @@ class SocketService {
       this.socket.on("connect", () => {
         console.log("Connected to server with socket ID:", this.socket.id);
         this.isConnected = true;
-        this.socket.emit("setup", { _id: userId });
+        this.socket.emit("setup", { _id: userId, name: userName });
       });
 
       this.socket.on("connected", () => {
-        console.log("User setup complete for:", userId);
+        console.log("User setup complete for:", userName);
       });
 
       this.socket.on("disconnect", () => {
@@ -43,6 +46,7 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      this.currentUser = null;
     }
   }
 
@@ -64,7 +68,6 @@ class SocketService {
     }
   }
 
-  // Note: matching your backend's typo "message recieved"
   onMessageReceived(callback) {
     if (this.socket) {
       this.socket.on("message recieved", (message) => {
@@ -81,33 +84,39 @@ class SocketService {
   }
 
   startTyping(chatId) {
-    if (this.socket && this.isConnected) {
+    if (this.socket && this.isConnected && this.currentUser) {
       console.log("Start typing in chat:", chatId);
-      this.socket.emit("typing", chatId);
+      this.socket.emit("typing", {
+        chatId,
+        user: this.currentUser,
+      });
     }
   }
 
   stopTyping(chatId) {
-    if (this.socket && this.isConnected) {
+    if (this.socket && this.isConnected && this.currentUser) {
       console.log("Stop typing in chat:", chatId);
-      this.socket.emit("stop typing", chatId);
+      this.socket.emit("stop typing", {
+        chatId,
+        user: this.currentUser,
+      });
     }
   }
 
   onTyping(callback) {
     if (this.socket) {
-      this.socket.on("typing", () => {
-        console.log("Typing event received");
-        callback();
+      this.socket.on("typing", (data) => {
+        console.log("Typing event received:", data);
+        callback(data);
       });
     }
   }
 
   onStopTyping(callback) {
     if (this.socket) {
-      this.socket.on("stop typing", () => {
-        console.log("Stop typing event received");
-        callback();
+      this.socket.on("stop typing", (data) => {
+        console.log("Stop typing event received:", data);
+        callback(data);
       });
     }
   }
