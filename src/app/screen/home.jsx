@@ -15,8 +15,10 @@ import Navbar from "../../components/Navbar";
 import PostCard from "../../components/PostCard";
 import axios from "axios";
 import { useFocusEffect } from "@react-navigation/native";
+// Import the icon library
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-const Home = () => {
+const Home = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -25,7 +27,7 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
-  const API_URL = "http://192.168.0.123:8000/api";
+  const API_URL = "http://192.168.0.107:8000/api";
   const LIMIT = 5;
 
   // Initial load
@@ -127,6 +129,11 @@ const Home = () => {
     await fetchInitialPosts();
   };
 
+  // Navigate to chat screen
+  const navigateToChat = () => {
+    navigation.navigate("chat");
+  };
+
   // Create a truly unique key for each post
   const getUniqueKey = (item, index) => {
     if (item._id) {
@@ -191,6 +198,11 @@ const Home = () => {
         }
       />
 
+      {/* Floating Chat Button with Vector Icon */}
+      <TouchableOpacity style={styles.chatButton} onPress={navigateToChat}>
+        <MaterialCommunityIcons name="chat" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+
       <View style={styles.sideNavWrapper}>
         <SideNav />
       </View>
@@ -248,6 +260,24 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  // Updated floating chat button styles - square with rounded corners
+  chatButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 120, // Positioned higher from the bottom
+    backgroundColor: "#9333EA", // Black background
+    width: 56,
+    height: 56,
+    borderRadius: 16, // Rounded corners but not circular
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8, // Android shadow
+    shadowColor: "#000", // iOS shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    borderWidth: 0, // Remove border
   },
 });
 

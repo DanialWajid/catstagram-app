@@ -21,7 +21,7 @@ const FriendsExplore = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const API_URL = "http://192.168.0.123:8000";
+  const API_URL = "http://192.168.0.107:8000";
 
   useEffect(() => {
     fetchPotentialFriends();
