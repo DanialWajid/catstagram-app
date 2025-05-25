@@ -67,6 +67,55 @@ const TypingIndicator = ({ typingUsers }) => {
   );
 };
 
+const DateSeparator = ({ date }) => {
+  const formatDate = (dateString) => {
+    const messageDate = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Reset time to compare dates only
+    const messageDateOnly = new Date(
+      messageDate.getFullYear(),
+      messageDate.getMonth(),
+      messageDate.getDate()
+    );
+    const todayOnly = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const yesterdayOnly = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+
+    if (messageDateOnly.getTime() === todayOnly.getTime()) {
+      return "Today";
+    } else if (messageDateOnly.getTime() === yesterdayOnly.getTime()) {
+      return "Yesterday";
+    } else {
+      return messageDate.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+  };
+
+  return (
+    <View style={styles.dateSeparatorContainer}>
+      <View style={styles.dateSeparatorLine} />
+      <View style={styles.dateSeparatorBubble}>
+        <Text style={styles.dateSeparatorText}>{formatDate(date)}</Text>
+      </View>
+      <View style={styles.dateSeparatorLine} />
+    </View>
+  );
+};
+
 const ChatMessage = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -81,7 +130,7 @@ const ChatMessage = () => {
   const flatListRef = useRef(null);
 
   const { chatId, chatData } = route.params;
-  const API_URL = "http://192.168.0.107:8000/api";
+  const API_URL = "http://192.168.0.109:8000/api";
 
   useEffect(() => {
     console.log("ChatMessage component mounted for chat:", chatId);
@@ -93,6 +142,34 @@ const ChatMessage = () => {
       cleanupSocket();
     };
   }, [chatId, user._id]);
+
+  // Function to group messages by date and add date separators
+  const groupMessagesByDate = (messages) => {
+    const grouped = [];
+    let currentDate = null;
+
+    messages.forEach((message) => {
+      const messageDate = new Date(message.createdAt).toDateString();
+
+      if (currentDate !== messageDate) {
+        // Add date separator
+        grouped.push({
+          type: "date",
+          id: `date-${messageDate}`,
+          date: message.createdAt,
+        });
+        currentDate = messageDate;
+      }
+
+      // Add the message
+      grouped.push({
+        type: "message",
+        ...message,
+      });
+    });
+
+    return grouped;
+  };
 
   const setupSocket = () => {
     console.log("Setting up socket connection...");
@@ -279,7 +356,12 @@ const ChatMessage = () => {
     }
   };
 
-  const renderMessage = ({ item }) => {
+  const renderItem = ({ item }) => {
+    if (item.type === "date") {
+      return <DateSeparator date={item.date} />;
+    }
+
+    // Render message
     const isMyMessage = item.sender._id === user._id;
 
     return (
@@ -311,6 +393,7 @@ const ChatMessage = () => {
   };
 
   const displayInfo = getChatDisplayInfo();
+  const groupedMessages = groupMessagesByDate(messages);
 
   if (loading) {
     return (
@@ -388,14 +471,14 @@ const ChatMessage = () => {
       {/* Messages */}
       <FlatList
         ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item._id}
+        data={groupedMessages}
+        renderItem={renderItem}
+        keyExtractor={(item) => (item.type === "date" ? item.id : item._id)}
         style={styles.messagesList}
         contentContainerStyle={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => {
-          if (messages.length > 0) {
+          if (groupedMessages.length > 0) {
             flatListRef.current?.scrollToEnd({ animated: true });
           }
         }}
@@ -552,6 +635,30 @@ const styles = StyleSheet.create({
   messagesContainer: {
     padding: 16,
     flexGrow: 1,
+  },
+  dateSeparatorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 16,
+    paddingHorizontal: 16,
+  },
+  dateSeparatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#374151",
+  },
+  dateSeparatorBubble: {
+    backgroundColor: "#374151",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginHorizontal: 12,
+  },
+  dateSeparatorText: {
+    color: "#9ca3af",
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
   },
   messageContainer: {
     maxWidth: "80%",

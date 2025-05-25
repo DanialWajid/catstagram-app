@@ -133,7 +133,7 @@ const ChatPage = () => {
   const { user } = useAuthStore();
   const navigation = useNavigation();
 
-  const API_URL = "http://192.168.0.107:8000/api";
+  const API_URL = "http://192.168.0.109:8000/api";
 
   // Enhanced Socket Connection with better error handling and reconnection
   useEffect(() => {
