@@ -7,26 +7,23 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Dimensions,
   RefreshControl,
 } from "react-native";
 import Navbar from "../../components/Navbar";
 import SideNav from "../../components/SideNav";
 import { getSavedPosts } from "../../services/savedPosts.services";
 import PostCard from "../../components/PostCard";
-import { Grid, List, Search } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Search } from "lucide-react-native";
 import { useAuthStore } from "../../store/authStore";
-
-const { width } = Dimensions.get("window");
+import { useTheme } from "../../store/themeContext";
 
 const SavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("list");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
+  const { theme } = useTheme();
 
   const fetchSavedPosts = async () => {
     try {
@@ -70,19 +67,28 @@ const SavedPosts = () => {
       post={item}
       user={user}
       onUnsave={handleUnsavePost}
-      viewMode={viewMode}
+      viewMode="list"
     />
   );
 
   return (
-    <View style={[styles.container, styles.containerDark]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Navbar />
-      <View style={[styles.searchContainer, styles.searchContainerDark]}>
-        <Search size={20} color="#9ca3af" style={styles.searchIcon} />
+      <View
+        style={[
+          styles.searchContainer,
+          { backgroundColor: theme.card, borderColor: theme.border },
+        ]}
+      >
+        <Search
+          size={20}
+          color={theme.secondaryText}
+          style={styles.searchIcon}
+        />
         <TextInput
-          style={[styles.searchInput, styles.inputDark]}
-          placeholder="Search saved posts by title or caption..."
-          placeholderTextColor="#9ca3af"
+          style={[styles.searchInput, { color: theme.text }]}
+          placeholder="Search posts by title or caption..."
+          placeholderTextColor={theme.secondaryText}
           value={searchTerm}
           onChangeText={handleSearchChange}
         />
@@ -90,34 +96,30 @@ const SavedPosts = () => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#a78bfa" />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       ) : filteredPosts.length > 0 ? (
         <FlatList
           data={filteredPosts}
           renderItem={renderItem}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={[
-            styles.listContainer,
-            viewMode === "grid"
-              ? styles.gridContainer
-              : styles.listViewContainer,
-          ]}
-          numColumns={viewMode === "grid" ? 2 : 1}
-          key={viewMode}
+          contentContainerStyle={styles.listContainer}
+          numColumns={1}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#a78bfa"]}
-              tintColor="#a78bfa"
-              progressBackgroundColor="#1f2937"
+              colors={[theme.accent]}
+              tintColor={theme.accent}
+              progressBackgroundColor={theme.card}
             />
           }
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No Saved Posts Found.</Text>
+          <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
+            No Saved Posts Found.
+          </Text>
         </View>
       )}
       <View style={styles.sideNavWrapper}>
@@ -132,23 +134,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 70,
   },
-  containerDark: {
-    backgroundColor: "#111827",
-  },
-  headerGradient: {
-    paddingVertical: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#ffffff",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -160,10 +145,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
   },
-  searchContainerDark: {
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
-  },
   searchIcon: {
     marginRight: 8,
   },
@@ -172,43 +153,11 @@ const styles = StyleSheet.create({
     height: "100%",
     fontSize: 16,
   },
-  inputDark: {
-    color: "#f9fafb",
-  },
   sideNavWrapper: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-  },
-  viewModeContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 16,
-    gap: 16,
-  },
-  viewModeButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  selectedButtonDark: {
-    backgroundColor: "#7c3aed",
-  },
-  unselectedButtonDark: {
-    backgroundColor: "#374151",
-  },
-  viewModeText: {
-    marginLeft: 8,
-    fontWeight: "500",
-  },
-  selectedText: {
-    color: "#ffffff",
-  },
-  unselectedTextDark: {
-    color: "#a78bfa",
   },
   loadingContainer: {
     flex: 1,
@@ -218,15 +167,6 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 8,
   },
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-  },
-  listViewContainer: {
-    paddingHorizontal: 16,
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -235,7 +175,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
     textAlign: "center",
   },
 });

@@ -14,14 +14,16 @@ import {
 import axios from "axios";
 import UserCard from "../../components/UserCard";
 import { Search } from "lucide-react-native";
+import { useTheme } from "../../store/themeContext";
 
 const FriendsExplore = () => {
   const [potentialFriends, setPotentialFriends] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { theme } = useTheme();
 
-  const API_URL = "http://192.168.0.107:8000";
+  const API_URL = "http://192.168.10.9:8000";
 
   useEffect(() => {
     fetchPotentialFriends();
@@ -68,15 +70,24 @@ const FriendsExplore = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Navbar />
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Search size={20} color="#9ca3af" style={styles.searchIcon} />
+      <View
+        style={[
+          styles.searchContainer,
+          { backgroundColor: theme.card, borderColor: theme.border },
+        ]}
+      >
+        <Search
+          size={20}
+          color={theme.secondaryText}
+          style={styles.searchIcon}
+        />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder="Search by name..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={theme.secondaryText}
           value={searchTerm}
           onChangeText={handleSearchChange}
         />
@@ -85,7 +96,7 @@ const FriendsExplore = () => {
       {/* Friends List */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#a78bfa" />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       ) : (
         <FlatList
@@ -95,7 +106,7 @@ const FriendsExplore = () => {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
                 {searchTerm
                   ? "No friends match your search."
                   : "No potential friends found."}
@@ -106,9 +117,9 @@ const FriendsExplore = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#a78bfa"]}
-              tintColor="#a78bfa"
-              progressBackgroundColor="#1f2937"
+              colors={[theme.accent]}
+              tintColor={theme.accent}
+              progressBackgroundColor={theme.card}
             />
           }
         />
@@ -121,22 +132,7 @@ const FriendsExplore = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111827",
     paddingBottom: 70,
-  },
-  headerGradient: {
-    paddingVertical: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#ffffff",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
   },
   searchContainer: {
     marginTop: 16,
@@ -148,8 +144,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 48,
     borderWidth: 1,
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
   },
   searchIcon: {
     marginRight: 8,
@@ -158,7 +152,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
     fontSize: 16,
-    color: "#f9fafb",
   },
   loadingContainer: {
     flex: 1,
@@ -177,7 +170,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
     textAlign: "center",
   },
 });

@@ -1,6 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Login from "./screen/login";
 import Home from "./screen/home";
 import Signup from "./screen/signup";
@@ -13,17 +13,14 @@ import EditPost from "./screen/EditPost";
 import CreatePost from "./screen/CreatePost";
 import Friends from "./screen/Friends";
 import Requests from "./screen/Requests";
-import ChatPage from "./screen/ChatPage";
-import ChatMessage from "./screen/ChatMessage";
-import CreateGroupChat from "./screen/CreateGroupChat"; // Add this import
-import GroupChatSettings from "./screen/GroupChatSettings"; // Add this import for group settings
 import { useAuthStore } from "../store/authStore";
+import { ThemeProvider } from "../store/themeContext";
 import * as Font from "expo-font";
 import { ActivityIndicator, View } from "react-native";
 
 const Stack = createNativeStackNavigator();
 
-const App = () => {
+const AppContent = () => {
   const { isAuthenticated } = useAuthStore();
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -61,13 +58,6 @@ const App = () => {
       <Stack.Screen name="ExploreFriends" component={FriendsExplore} />
       <Stack.Screen name="FriendRequests" component={Requests} />
       <Stack.Screen name="Home" component={Home} />
-
-      {/* Chat related screens */}
-      <Stack.Screen name="chat" component={ChatPage} />
-      <Stack.Screen name="ChatMessage" component={ChatMessage} />
-      <Stack.Screen name="CreateGroupChat" component={CreateGroupChat} />
-      <Stack.Screen name="GroupChatSettings" component={GroupChatSettings} />
-
       <Stack.Screen
         name="Profile"
         component={Profile}
@@ -83,6 +73,14 @@ const App = () => {
         })}
       />
     </Stack.Navigator>
+  );
+};
+
+const App = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 };
 

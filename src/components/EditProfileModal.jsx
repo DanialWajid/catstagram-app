@@ -7,16 +7,18 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  ActivityIndicator,
-  Alert,
+  KeyboardAvoidingView,
   Platform,
+  Alert,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { updateProfile } from "../services/profile.services";
 import { useAuthStore } from "../store/authStore";
 import { Upload, User, Lock, Unlock } from "lucide-react-native";
+import { useTheme } from "../store/themeContext";
 
 const EditProfileModal = ({ profile, onClose, onUpdate }) => {
   const [name, setName] = useState(profile.name || "");
@@ -27,6 +29,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const { user, setUser } = useAuthStore(); // Make sure to get setUser from the store
+  const { theme } = useTheme();
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -163,7 +166,10 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
         onPressOut={onClose}
       >
         <TouchableOpacity
-          style={styles.modalContainer}
+          style={[
+            styles.modalContainer,
+            { backgroundColor: theme.card, shadowColor: theme.accent },
+          ]}
           activeOpacity={1}
           onPress={(e) => e.stopPropagation()}
         >
@@ -171,11 +177,20 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.title}>Edit Profile</Text>
+            <Text style={[styles.title, { color: theme.text }]}>
+              Edit Profile
+            </Text>
 
             {errorMessage ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errorMessage}</Text>
+              <View
+                style={[
+                  styles.errorContainer,
+                  { backgroundColor: theme.error },
+                ]}
+              >
+                <Text style={[styles.errorText, { color: theme.buttonText }]}>
+                  {errorMessage}
+                </Text>
               </View>
             ) : null}
 
@@ -189,40 +204,68 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                 {imagePreview ? (
                   <Image
                     source={{ uri: imagePreview }}
-                    style={styles.profileImage}
+                    style={[styles.profileImage, { borderColor: theme.accent }]}
                   />
                 ) : (
-                  <View style={styles.profileImageFallback}>
-                    <User size={40} color="#e5e7eb" />
+                  <View
+                    style={[
+                      styles.profileImageFallback,
+                      {
+                        borderColor: theme.accent,
+                        backgroundColor: theme.input,
+                      },
+                    ]}
+                  >
+                    <User size={40} color={theme.secondaryText} />
                   </View>
                 )}
-                <View style={styles.uploadIconContainer}>
-                  <Upload size={20} color="#ffffff" />
+                <View
+                  style={[
+                    styles.uploadIconContainer,
+                    { backgroundColor: theme.button, borderColor: theme.card },
+                  ]}
+                >
+                  <Upload size={20} color={theme.buttonText} />
                 </View>
               </TouchableOpacity>
             </View>
 
             {/* Name Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Name</Text>
+              <Text style={[styles.label, { color: theme.text }]}>Name</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.input,
+                    borderColor: theme.border,
+                    color: theme.inputText,
+                  },
+                ]}
                 value={name}
                 onChangeText={setName}
                 placeholder="Your name"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={theme.secondaryText}
               />
             </View>
 
             {/* Bio Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Bio</Text>
+              <Text style={[styles.label, { color: theme.text }]}>Bio</Text>
               <TextInput
-                style={[styles.input, styles.bioInput]}
+                style={[
+                  styles.input,
+                  styles.bioInput,
+                  {
+                    backgroundColor: theme.input,
+                    borderColor: theme.border,
+                    color: theme.inputText,
+                  },
+                ]}
                 value={bio}
                 onChangeText={setBio}
                 placeholder="Tell us about yourself"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={theme.secondaryText}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -231,30 +274,48 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
 
             {/* Profile Privacy */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Profile Privacy</Text>
+              <Text style={[styles.label, { color: theme.text }]}>
+                Profile Privacy
+              </Text>
               <View style={styles.privacyOptions}>
                 <TouchableOpacity
                   style={[
                     styles.privacyOption,
-                    !isPrivate && styles.selectedOption,
+                    {
+                      backgroundColor: !isPrivate ? theme.input : theme.card,
+                      borderColor: theme.border,
+                    },
+                    !isPrivate && { borderWidth: 2, borderColor: theme.accent },
                   ]}
                   onPress={() => handlePrivacyPress(false)}
                   activeOpacity={0.7}
                 >
-                  <Unlock size={20} color="#e5e7eb" />
-                  <Text style={styles.privacyOptionText}>Public Profile</Text>
+                  <Unlock size={20} color={theme.secondaryText} />
+                  <Text
+                    style={[styles.privacyOptionText, { color: theme.text }]}
+                  >
+                    Public Profile
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     styles.privacyOption,
-                    isPrivate && styles.selectedOption,
+                    {
+                      backgroundColor: isPrivate ? theme.input : theme.card,
+                      borderColor: theme.border,
+                    },
+                    isPrivate && { borderWidth: 2, borderColor: theme.accent },
                   ]}
                   onPress={() => handlePrivacyPress(true)}
                   activeOpacity={0.7}
                 >
-                  <Lock size={20} color="#e5e7eb" />
-                  <Text style={styles.privacyOptionText}>Private Profile</Text>
+                  <Lock size={20} color={theme.secondaryText} />
+                  <Text
+                    style={[styles.privacyOptionText, { color: theme.text }]}
+                  >
+                    Private Profile
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -265,6 +326,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                 style={[
                   styles.button,
                   styles.saveButton,
+                  { backgroundColor: theme.button },
                   loading && styles.disabledButton,
                 ]}
                 onPress={handleSubmit}
@@ -272,19 +334,29 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                 activeOpacity={0.7}
               >
                 {loading ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color={theme.buttonText} />
                 ) : (
-                  <Text style={styles.buttonText}>Save Changes</Text>
+                  <Text
+                    style={[styles.buttonText, { color: theme.buttonText }]}
+                  >
+                    Save Changes
+                  </Text>
                 )}
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
+                style={[
+                  styles.button,
+                  styles.cancelButton,
+                  { backgroundColor: theme.border },
+                ]}
                 onPress={onClose}
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={[styles.buttonText, { color: theme.text }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -294,36 +366,38 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
   );
 };
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    width: "100%",
   },
   modalContainer: {
     width: "90%",
     maxWidth: 400,
     borderRadius: 16,
-    maxHeight: "80%",
+    padding: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    backgroundColor: "#1f2937",
   },
   scrollContent: {
     padding: 24,
   },
+  // header: {
+  //   flexDirection: "row",
+  //   justifyContent: "space-between",
+  //   alignItems: "center",
+  //   marginBottom: 24,
+  // },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
-    color: "#f9fafb",
   },
   errorContainer: {
     backgroundColor: "#dc2626",
@@ -372,6 +446,37 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#1f2937",
   },
+  // closeButton: {
+  //   padding: 4,
+  // },
+  // profileImageContainer: {
+  //   alignItems: "center",
+  //   marginBottom: 24,
+  // },
+  // imageWrapper: {
+  //   marginBottom: 12,
+  // },
+  // profileImage: {
+  //   width: 100,
+  //   height: 100,
+  //   borderRadius: 50,
+  // },
+  // imagePlaceholder: {
+  //   width: 100,
+  //   height: 100,
+  //   borderRadius: 50,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
+  // changeImageButton: {
+  //   paddingHorizontal: 16,
+  //   paddingVertical: 8,
+  //   borderRadius: 16,
+  // },
+  // changeImageText: {
+  //   fontSize: 14,
+  //   fontWeight: "500",
+  // },
   inputContainer: {
     marginBottom: 16,
   },
@@ -379,16 +484,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 8,
-    color: "#f9fafb",
   },
   input: {
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#374151",
-    borderColor: "#4b5563",
-    color: "#f9fafb",
   },
   bioInput: {
     minHeight: 100,
@@ -404,18 +505,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 4,
-    backgroundColor: "#1f2937",
   },
-  selectedOption: {
-    backgroundColor: "#374151",
-  },
+  selectedOption: {},
   privacyOptionText: {
     marginLeft: 8,
     fontSize: 14,
-    color: "#f9fafb",
   },
   buttonContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 16,
     gap: 12,
   },
@@ -426,20 +524,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  saveButton: {
-    backgroundColor: "#2563eb",
-  },
   cancelButton: {
-    backgroundColor: "#4b5563",
+    marginRight: 8,
+  },
+  saveButton: {
+    marginLeft: 8,
   },
   disabledButton: {
     opacity: 0.5,
   },
   buttonText: {
-    color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
   },
 });
 
 export default EditProfileModal;
+

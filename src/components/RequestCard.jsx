@@ -5,12 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Image, // Use standard Image instead of FastImage
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { User, Ban } from "lucide-react-native";
-// Remove FastImage import
 import { LinearGradient } from "expo-linear-gradient";
+import { useTheme } from "../store/themeContext";
 
 const RequestCard = ({
   request,
@@ -21,6 +21,7 @@ const RequestCard = ({
   loading,
 }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const userInfo = isSentRequest ? request.sentTo : request.sentBy;
 
   const getButtonConfig = () => {
@@ -29,15 +30,14 @@ const RequestCard = ({
         {
           text: loading ? "..." : "Unsend Request",
           onPress: () => onUnsend(request._id),
-          style: styles.darkUnsendButton,
-          textStyle: styles.buttonText,
+          style: { backgroundColor: theme.error },
+          textStyle: { color: theme.buttonText },
         },
         {
           text: "View Profile",
-          onPress: () =>
-            navigation.navigate("Profile", { userId: userInfo?._id }),
-          style: styles.darkViewButton,
-          textStyle: styles.buttonText,
+          onPress: () => navigation.navigate("Profile", { id: userInfo?._id }),
+          style: { backgroundColor: theme.button },
+          textStyle: { color: theme.buttonText },
         },
       ];
     } else {
@@ -45,14 +45,14 @@ const RequestCard = ({
         {
           text: loading ? "..." : "Approve",
           onPress: () => onApprove(request._id),
-          style: styles.darkApproveButton,
-          textStyle: styles.buttonText,
+          style: { backgroundColor: theme.success },
+          textStyle: { color: theme.buttonText },
         },
         {
           text: loading ? "..." : "Decline",
           onPress: () => onDecline(request._id),
-          style: styles.darkDeclineButton,
-          textStyle: styles.buttonText,
+          style: { backgroundColor: theme.error },
+          textStyle: { color: theme.buttonText },
         },
       ];
     }
@@ -61,42 +61,41 @@ const RequestCard = ({
   const buttons = getButtonConfig();
 
   return (
-    <LinearGradient
-      colors={["#111827", "#4c1d95", "#000000"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.cardContainer, { borderColor: "#7c3aed" }]}
+    <View
+      style={[
+        styles.cardContainer,
+        { backgroundColor: theme.card, borderColor: theme.accent, shadowColor: theme.accent },
+      ]}
     >
       <View style={styles.cardContent}>
         {userInfo.profileImage ? (
           <Image
             source={{ uri: userInfo.profileImage }}
-            style={[styles.avatar, { borderColor: "#7c3aed" }]}
+            style={[styles.avatar, { borderColor: theme.accent }]}
           />
         ) : (
           <View
             style={[
               styles.avatarFallback,
-              styles.darkAvatarFallback,
-              { borderColor: "#7c3aed" },
+              { backgroundColor: theme.input, borderColor: theme.accent },
             ]}
           >
-            <User size={40} color="#e5e7eb" />
+            <User size={40} color={theme.secondaryText} />
           </View>
         )}
 
         <View style={styles.userInfo}>
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Profile", { userId: userInfo?._id })
-            }
+            onPress={() => navigation.navigate("Profile", { id: userInfo?._id })}
           >
-            <Text style={[styles.userName, styles.darkText]}>
+            <Text style={[styles.userName, { color: theme.text }]}>
               {userInfo?.name}
             </Text>
           </TouchableOpacity>
 
-          <Text style={styles.userEmail}>{userInfo?.email}</Text>
+          <Text style={[styles.userEmail, { color: theme.secondaryText }]}>
+            {userInfo?.email}
+          </Text>
 
           <View style={styles.buttonContainer}>
             {buttons.map((button, index) => (
@@ -107,16 +106,16 @@ const RequestCard = ({
                 disabled={loading}
               >
                 {loading && index === 0 ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color={theme.buttonText} />
                 ) : (
-                  <Text style={button.textStyle}>{button.text}</Text>
+                  <Text style={[styles.buttonText, button.textStyle]}>{button.text}</Text>
                 )}
               </TouchableOpacity>
             ))}
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -125,7 +124,6 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 16,
     borderWidth: 1,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -154,9 +152,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 16,
   },
-  darkAvatarFallback: {
-    backgroundColor: "#4c1d95",
-  },
   userInfo: {
     flex: 1,
   },
@@ -165,12 +160,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 4,
   },
-  darkText: {
-    color: "#ffffff",
-  },
   userEmail: {
     fontSize: 14,
-    color: "#9ca3af",
     marginBottom: 12,
   },
   buttonContainer: {
@@ -186,21 +177,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minWidth: 120,
-  },
-  darkApproveButton: {
-    backgroundColor: "#059669",
-  },
-  darkDeclineButton: {
-    backgroundColor: "#dc2626",
-  },
-  darkUnsendButton: {
-    backgroundColor: "#d97706",
-  },
-  darkViewButton: {
-    backgroundColor: "#2563eb",
+    marginRight: 8,
+    marginBottom: 8,
   },
   buttonText: {
-    color: "#ffffff",
     fontWeight: "600",
     fontSize: 14,
   },

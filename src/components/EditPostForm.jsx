@@ -1,5 +1,5 @@
-import * as SecureStore from "expo-secure-store";
 import React, { useState } from "react";
+import * as SecureStore from "expo-secure-store";
 import {
   View,
   Text,
@@ -16,9 +16,6 @@ import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import {
-  MessageCircle,
-  Heart,
-  Bookmark,
   Camera,
   Check,
 } from "lucide-react-native";
@@ -27,12 +24,14 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { useTheme } from "../store/themeContext";
 
 const EditPostForm = ({ post }) => {
   const [caption, setCaption] = useState(post.caption || "");
   const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   const scale = useSharedValue(1);
 
@@ -63,9 +62,9 @@ const EditPostForm = ({ post }) => {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // This enables the default cropping UI
-      aspect: [1, 1], // Square aspect ratio
-      quality: 0.8, // Good quality without being too large
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
     });
 
     if (!result.canceled) {
@@ -99,7 +98,7 @@ const EditPostForm = ({ post }) => {
       }
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        `http://192.168.0.107:8000/api/posts/edit/${post._id}`,
+        `http://192.168.10.9:8000/api/posts/edit/${post._id}`,
         formData,
         {
           headers: {
@@ -127,19 +126,28 @@ const EditPostForm = ({ post }) => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.contentContainer}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Edit Post</Text>
+      <View style={[styles.formContainer, { backgroundColor: theme.card }]}>
+        <Text style={[styles.title, { color: theme.text }]}>Edit Post</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Update Caption</Text>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Update Caption
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.input,
+                borderColor: theme.border,
+                color: theme.inputText,
+              },
+            ]}
             placeholder="Update your caption..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={theme.secondaryText}
             value={caption}
             onChangeText={setCaption}
             multiline
@@ -147,14 +155,22 @@ const EditPostForm = ({ post }) => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Update Image</Text>
+          <Text style={[styles.label, { color: theme.text }]}>
+            Update Image
+          </Text>
 
           <TouchableOpacity
-            style={styles.imagePickerButton}
+            style={[
+              styles.imagePickerButton,
+              {
+                backgroundColor: theme.input,
+                borderColor: theme.border,
+              },
+            ]}
             onPress={pickImage}
           >
-            <Camera size={24} color="#f9fafb" />
-            <Text style={styles.imagePickerText}>
+            <Camera size={24} color={theme.text} />
+            <Text style={[styles.imagePickerText, { color: theme.text }]}>
               {newImage ? "Change Image" : "Select New Image"}
             </Text>
           </TouchableOpacity>
@@ -167,7 +183,12 @@ const EditPostForm = ({ post }) => {
                 resizeMode="cover"
               />
               {newImage && (
-                <View style={styles.imageSelectedIndicator}>
+                <View
+                  style={[
+                    styles.imageSelectedIndicator,
+                    { backgroundColor: theme.success },
+                  ]}
+                >
                   <Check size={16} color="#ffffff" />
                 </View>
               )}
@@ -179,6 +200,7 @@ const EditPostForm = ({ post }) => {
           <TouchableOpacity
             style={[
               styles.submitButton,
+              { backgroundColor: theme.button },
               (!caption.trim() || loading) && styles.disabledButton,
             ]}
             onPress={handleSubmit}
@@ -187,9 +209,13 @@ const EditPostForm = ({ post }) => {
             onPressOut={handlePressOut}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color={theme.buttonText} />
             ) : (
-              <Text style={styles.submitButtonText}>Update Post</Text>
+              <Text
+                style={[styles.submitButtonText, { color: theme.buttonText }]}
+              >
+                Update Post
+              </Text>
             )}
           </TouchableOpacity>
         </Animated.View>
@@ -201,16 +227,13 @@ const EditPostForm = ({ post }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111827",
   },
   contentContainer: {
     padding: 16,
   },
   formContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     padding: 24,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -221,16 +244,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
-    color: "#f9fafb",
   },
   inputContainer: {
     marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 8,
-    color: "#f9fafb",
   },
   input: {
     borderWidth: 1,
@@ -239,9 +255,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 100,
     textAlignVertical: "top",
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
-    color: "#f9fafb",
   },
   imagePickerButton: {
     flexDirection: "row",
@@ -251,13 +264,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderStyle: "dashed",
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
   },
   imagePickerText: {
     marginLeft: 8,
     fontSize: 16,
-    color: "#f9fafb",
   },
   imagePreviewContainer: {
     marginTop: 16,
@@ -273,27 +283,30 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: "#10b981",
     borderRadius: 12,
     padding: 4,
-  },
-  buttonContainer: {
-    marginTop: 8,
   },
   submitButton: {
     height: 50,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
+    marginTop: 8,
   },
   disabledButton: {
     opacity: 0.5,
   },
   submitButtonText: {
-    color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  buttonContainer: {
+    marginTop: 8,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 8,
   },
 });
 

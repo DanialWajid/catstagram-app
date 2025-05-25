@@ -13,6 +13,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../../store/themeContext";
+import ThemeToggle from "../../components/ThemeToggle";
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState("");
@@ -20,7 +22,8 @@ const Login = ({ onLogin }) => {
   const { login } = useAuthStore();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const { theme } = useTheme();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -42,36 +45,39 @@ const Login = ({ onLogin }) => {
       setLoading(false);
     }
   };
+
   async function resetPassword() {
     navigation.navigate("ForgetPassword");
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <LinearGradient
-        colors={["#4c1d95", "#7e22ce", "#6b21a8"]}
-        style={styles.background}
-      >
-        <View style={styles.card}>
-          <View style={styles.toggleContainer}>
-            <Ionicons name="moon" size={20} color="#34d399" />
-            <View style={styles.toggleCircle} />
-          </View>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
+      <StatusBar
+        barStyle={theme.mode === "dark" ? "light-content" : "dark-content"}
+      />
+      <LinearGradient colors={theme.gradient} style={styles.background}>
+        <View style={[styles.card, { backgroundColor: theme.card }]}>
+          <ThemeToggle style={styles.toggleContainer} />
 
-          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={[styles.title, { color: theme.accent }]}>
+            Welcome Back
+          </Text>
 
-          <View style={styles.inputContainer}>
+          <View
+            style={[styles.inputContainer, { backgroundColor: theme.input }]}
+          >
             <Ionicons
               name="mail-outline"
               size={20}
-              color="#34d399"
+              color={theme.accent}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.inputText }]}
               placeholder="Email"
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.secondaryText}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -79,49 +85,59 @@ const Login = ({ onLogin }) => {
             />
           </View>
 
-          <View style={styles.inputContainer}>
+          <View
+            style={[styles.inputContainer, { backgroundColor: theme.input }]}
+          >
             <Ionicons
               name="lock-closed-outline"
               size={20}
-              color="#34d399"
+              color={theme.accent}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.inputText }]}
               placeholder="Password"
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.secondaryText}
               value={password}
               onChangeText={setPassword}
-              secureTextEntry={!showPassword} // Conditionally hide/show password
+              secureTextEntry={!showPassword}
             />
             <TouchableOpacity
               style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)} // Toggle visibility
+              onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={24}
-                color="#34d399"
+                color={theme.accent}
               />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity onPress={resetPassword}>
-            <Text style={styles.forgotPassword}>Forgot password?</Text>
+            <Text style={[styles.forgotPassword, { color: theme.accent }]}>
+              Forgot password?
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.loginButton}
+            style={[styles.loginButton, { backgroundColor: theme.button }]}
             onPress={handleLogin}
             disabled={loading}
           >
-            <Text style={styles.loginButtonText}>Login</Text>
+            <Text style={[styles.loginButtonText, { color: theme.buttonText }]}>
+              Login
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
+            <Text style={[styles.signupText, { color: theme.secondaryText }]}>
+              Don't have an account?{" "}
+            </Text>
             <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-              <Text style={styles.signupLink}>Sign up</Text>
+              <Text style={[styles.signupLink, { color: theme.accent }]}>
+                Sign up
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -129,6 +145,7 @@ const Login = ({ onLogin }) => {
     </SafeAreaView>
   );
 };
+
 export default Login;
 
 const styles = StyleSheet.create({
@@ -141,36 +158,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    backgroundColor: "rgba(30, 27, 75, 0.9)",
     borderRadius: 12,
     padding: 24,
     width: "85%",
     maxWidth: 400,
   },
   toggleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     alignSelf: "flex-end",
     marginBottom: 20,
-  },
-  toggleCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "white",
-    marginLeft: 5,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#34d399",
     marginBottom: 24,
     textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f1f5f9",
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
@@ -181,18 +186,15 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 50,
-    color: "#1e293b",
   },
   eyeIcon: {
     marginLeft: 8,
   },
   forgotPassword: {
-    color: "#34d399",
     textAlign: "left",
     marginBottom: 24,
   },
   loginButton: {
-    backgroundColor: "#34d399",
     borderRadius: 8,
     height: 50,
     justifyContent: "center",
@@ -200,7 +202,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   loginButtonText: {
-    color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -209,11 +210,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 8,
   },
-  signupText: {
-    color: "#cbd5e1",
-  },
+  signupText: {},
   signupLink: {
-    color: "#34d399",
     fontWeight: "bold",
   },
 });

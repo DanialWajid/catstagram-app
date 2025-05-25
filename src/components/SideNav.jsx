@@ -6,23 +6,25 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-import { Home, Bookmark, Compass, User, PlusCircle } from "lucide-react-native";
+import { Home, Bookmark, Compass, PlusCircle } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../store/authStore";
+import { useTheme } from "../store/themeContext";
 
 const SideNav = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
+  const { theme } = useTheme();
 
-  // Use useMemo to recreate navItems when user changes
+  // Use useMemo to recreate navItems when user or theme changes
   const navItems = useMemo(
     () => [
       {
-        icon: <Home color="#fff" size={24} />,
+        icon: <Home color={theme.text} size={24} />,
         screen: "Home",
       },
       {
-        icon: <Compass color="#fff" size={24} />,
+        icon: <Compass color={theme.text} size={24} />,
         screen: "ExploreFriends",
       },
       {
@@ -31,7 +33,7 @@ const SideNav = () => {
         isSpecial: true,
       },
       {
-        icon: <Bookmark color="#fff" size={24} />,
+        icon: <Bookmark color={theme.text} size={24} />,
         screen: "SavedPosts",
       },
       {
@@ -43,8 +45,10 @@ const SideNav = () => {
               source={{
                 uri: user?.profileImage || "https://example.com/default.jpg",
               }}
-              style={styles.profileImage}
-              // Add key to force re-render when image changes
+              style={[
+                styles.profileImage,
+                { borderColor: theme.accent },
+              ]}
               key={user?.profileImage || "default"}
             />
           </TouchableOpacity>
@@ -52,24 +56,41 @@ const SideNav = () => {
         screen: "Profile",
       },
     ],
-    [user, navigation]
-  ); // Dependencies array includes user to re-create when user changes
-
-  console.log("SideNav rendering with profile image:", user?.profileImage);
+    [user, navigation, theme]
+  );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.navbar, borderTopColor: theme.border },
+      ]}
+    >
       {navItems.map((item, index) => (
         <TouchableOpacity
           key={index}
           style={[
             styles.navItem,
-            item.isSpecial ? styles.specialButtonContainer : null,
+            item.isSpecial && {
+              ...styles.specialButtonContainer,
+              backgroundColor: theme.accent,
+              // shadowColor for iOS, elevation for Android
+              ...(Platform.OS === "ios"
+                ? { shadowColor: theme.accent }
+                : { elevation: 12 }),
+            },
           ]}
           onPress={() => navigation.navigate(item.screen, { id: user?._id })}
         >
           <View
-            style={[styles.icon, item.isSpecial ? styles.glowEffect : null]}
+            style={[
+              styles.icon,
+              item.isSpecial && {
+                ...styles.glowEffect,
+                backgroundColor: theme.accent,
+                shadowColor: theme.accent,
+              },
+            ]}
           >
             {item.icon}
           </View>
@@ -85,12 +106,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignItems: "center",
     paddingVertical: 12,
-    backgroundColor: "#000", // Black background
     borderTopWidth: 1,
-    borderTopColor: "#333", // Slight gray border to match black bg
-    position: "absolute", // Make the SideNav absolute positioned
-    bottom: 0, // Stick it to the bottom
-    width: "100%", // Ensure it takes full width
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
   },
   navItem: {
     alignItems: "center",
@@ -101,13 +120,11 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   specialButtonContainer: {
-    backgroundColor: "#9333EA", // Purple background for the Create button
     borderRadius: 50,
     padding: 14,
     marginTop: -30,
     ...Platform.select({
       ios: {
-        shadowColor: "#9333EA",
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.7,
         shadowRadius: 10,
@@ -118,10 +135,8 @@ const styles = StyleSheet.create({
     }),
   },
   glowEffect: {
-    backgroundColor: "#9333EA", // Glowing purple effect for special button
     borderRadius: 50,
     padding: 12,
-    shadowColor: "#c084fc", // Light purple glow
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 15,
@@ -132,7 +147,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: "#E9D5FF", // Light purple border around profile pic
   },
 });
 

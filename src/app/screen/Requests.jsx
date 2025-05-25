@@ -15,19 +15,19 @@ import Navbar from "../../components/Navbar";
 import RequestCard from "../../components/RequestCard";
 import { useAuthStore } from "../../store/authStore";
 import { Search } from "lucide-react-native";
-// Remove the LinearGradient import since it's not being used
 import * as SecureStore from "expo-secure-store";
+import { useTheme } from "../../store/themeContext";
 
 const Requests = () => {
-  // Rest of your component remains the same
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
+  const { theme } = useTheme();
 
-  const API_URL = "http://192.168.0.107:8000";
+  const API_URL = "http://192.168.10.9:8000";
 
   useEffect(() => {
     fetchRequests();
@@ -139,25 +139,43 @@ const Requests = () => {
   );
 
   return (
-    <View style={[styles.container, styles.containerDark]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Navbar />
       <View style={styles.tabContainer}>
         <View
-          style={[styles.tabButton, styles.activeTab]}
-          onPress={() => setActiveTab("friends")}
+          style={[
+            styles.tabButton,
+            styles.activeTab,
+            { backgroundColor: theme.accent },
+          ]}
         >
-          <Text style={[styles.tabText, styles.activeTabText]}>
+          <Text
+            style={[
+              styles.tabText,
+              styles.activeTabText,
+              { color: theme.buttonText },
+            ]}
+          >
             Friend Requests
           </Text>
         </View>
       </View>
 
-      <View style={[styles.searchContainer, styles.searchContainerDark]}>
-        <Search size={20} color="#9ca3af" style={styles.searchIcon} />
+      <View
+        style={[
+          styles.searchContainer,
+          { backgroundColor: theme.card, borderColor: theme.border },
+        ]}
+      >
+        <Search
+          size={20}
+          color={theme.secondaryText}
+          style={styles.searchIcon}
+        />
         <TextInput
-          style={[styles.searchInput, styles.inputDark]}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder="Search requests by name..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={theme.secondaryText}
           value={searchTerm}
           onChangeText={handleSearchChange}
         />
@@ -165,7 +183,7 @@ const Requests = () => {
 
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#a78bfa" />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       ) : (
         <FlatList
@@ -175,7 +193,7 @@ const Requests = () => {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
                 {searchTerm
                   ? "No matching requests found"
                   : "No pending requests"}
@@ -186,9 +204,9 @@ const Requests = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#a78bfa"]}
-              tintColor="#a78bfa"
-              progressBackgroundColor="#1f2937"
+              colors={[theme.accent]}
+              tintColor={theme.accent}
+              progressBackgroundColor={theme.card}
             />
           }
         />
@@ -198,7 +216,6 @@ const Requests = () => {
   );
 };
 
-// Styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -217,36 +234,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  activeTab: {
-    backgroundColor: "#7c3aed",
-  },
-  inactiveTab: {
-    backgroundColor: "#4b5563",
-  },
+  activeTab: {},
   tabText: {
     fontWeight: "600",
     fontSize: 16,
   },
-  activeTabText: {
-    color: "#ffffff",
-  },
-  containerDark: {
-    backgroundColor: "#111827",
-  },
-  headerGradient: {
-    paddingVertical: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#ffffff",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
+  activeTabText: {},
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -257,10 +250,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
   },
-  searchContainerDark: {
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
-  },
   searchIcon: {
     marginRight: 8,
   },
@@ -268,9 +257,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
     fontSize: 16,
-  },
-  inputDark: {
-    color: "#f9fafb",
   },
   loadingContainer: {
     flex: 1,
@@ -288,7 +274,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
     textAlign: "center",
   },
 });

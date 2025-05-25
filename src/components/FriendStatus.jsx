@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { useAuthStore } from "../store/authStore";
 import * as SecureStore from "expo-secure-store";
+import { useTheme } from "../store/themeContext";
 
 const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
   const [canView, setCanView] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
+  const { theme } = useTheme();
 
-  const API_URL = "http://192.168.0.107:8000/";
+    const API_URL = "http://192.168.10.9:8000/";
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -48,30 +50,32 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
     }
   }, [userId, user._id]);
 
-  if (loading) {
+  if(loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color="#60a5fa" />
+        <Text style={[styles.loadingText, { color: theme.text }]}>Loading...</Text>
       </View>
     );
   }
 
   if (!canView) {
     return (
-      <View style={styles.fallbackContainer}>
-        <Text style={styles.fallbackText}>{fallbackMessage}</Text>
+      <View style={[styles.fallbackContainer, { backgroundColor: theme.card }]}>
+        <Text style={[styles.fallbackText, { color: theme.secondaryText }]}>{fallbackMessage}</Text>
       </View>
     );
   }
-
   return children;
-};
+}                          
 
 const styles = StyleSheet.create({
   loadingContainer: {
     padding: 16,
     alignItems: "center",
-    justifyContent: "center",
+  },
+  loadingText: {
+    fontSize: 16,
   },
   fallbackContainer: {
     flex: 1,
@@ -82,8 +86,7 @@ const styles = StyleSheet.create({
   fallbackText: {
     fontSize: 16,
     textAlign: "center",
-    color: "#f9fafb",
   },
-});
+})
 
 export default FriendProtectedContent;

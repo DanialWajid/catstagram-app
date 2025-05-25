@@ -1,15 +1,18 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import CreatePostForm from '../../components/CreatePostForm';
-import SideNav from "../../components/SideNav"; // adjust path
+import SideNav from "../../components/SideNav";
 import Navbar from "../../components/Navbar";
+import { useTheme } from "../../store/themeContext";
 
 const CreatePost = ({ navigation }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Navbar/>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Navbar />
       <CreatePostForm navigation={navigation} />
-      <SideNav/>
+      <SideNav />
     </View>
   );
 };
@@ -17,9 +20,7 @@ const CreatePost = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111827',
-    paddingBottom:70,
-
+    paddingBottom: 70,
   },
 });
 

@@ -26,6 +26,7 @@ import EditProfileModal from "../../components/EditProfileModal";
 import SideNav from "../../components/SideNav";
 import Navbar from "../../components/Navbar";
 import UserPosts from "../../components/UserPosts";
+import { useTheme } from "../../store/themeContext";
 
 const Profile = () => {
   const route = useRoute();
@@ -40,6 +41,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user, logout } = useAuthStore();
+  const { theme } = useTheme();
   const userId = user ? user._id : null;
 
   const fetchProfileData = async () => {
@@ -88,17 +90,17 @@ const Profile = () => {
       <View
         style={[
           styles.container,
-          styles.containerDark,
           styles.loadingContainer,
+          { backgroundColor: theme.background },
         ]}
       >
-        <ActivityIndicator size="large" color="#a78bfa" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, styles.containerDark]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Navbar />
       <ScrollView
         style={styles.scrollView}
@@ -107,12 +109,12 @@ const Profile = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#a78bfa"]}
-            tintColor="#a78bfa"
+            colors={[theme.accent]}
+            tintColor={theme.accent}
           />
         }
       >
-        <View style={[styles.profileHeader, styles.profileHeaderDark]}>
+        <View style={[styles.profileHeader, { backgroundColor: theme.card }]}>
           <View style={styles.profileContent}>
             <View style={styles.avatarContainer}>
               {profile.profileImage && !isBlocked ? (
@@ -122,9 +124,12 @@ const Profile = () => {
                 />
               ) : (
                 <View
-                  style={[styles.avatarFallback, styles.avatarFallbackDark]}
+                  style={[
+                    styles.avatarFallback,
+                    { backgroundColor: theme.border },
+                  ]}
                 >
-                  <UserIcon size={40} color="#e5e7eb" />
+                  <UserIcon size={40} color={theme.secondaryText} />
                 </View>
               )}
             </View>
@@ -132,29 +137,37 @@ const Profile = () => {
             <View style={styles.profileDetails}>
               <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
-                  <Text style={[styles.statValue, styles.textDark]}>
+                  <Text style={[styles.statValue, { color: theme.text }]}>
                     {stats.postCount || 0}
                   </Text>
-                  <Text style={styles.statLabel}>Posts</Text>
+                  <Text
+                    style={[styles.statLabel, { color: theme.secondaryText }]}
+                  >
+                    Posts
+                  </Text>
                 </View>
 
                 <TouchableOpacity
                   style={styles.statItem}
                   onPress={() => setShowFriendsModal(true)}
                 >
-                  <Text style={[styles.statValue, styles.textDark]}>
+                  <Text style={[styles.statValue, { color: theme.text }]}>
                     {stats.friendsCount || 0}
                   </Text>
-                  <Text style={styles.statLabel}>Friends</Text>
+                  <Text
+                    style={[styles.statLabel, { color: theme.secondaryText }]}
+                  >
+                    Friends
+                  </Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={[styles.profileName, styles.textDark]}>
+              <Text style={[styles.profileName, { color: theme.text }]}>
                 {isBlocked ? "Catstagram User" : profile.name}
               </Text>
 
               {profile.bio && !isBlocked && (
-                <Text style={[styles.profileBio, styles.textDark]}>
+                <Text style={[styles.profileBio, { color: theme.text }]}>
                   {profile.bio}
                 </Text>
               )}
@@ -167,22 +180,26 @@ const Profile = () => {
                 style={[
                   styles.actionButton,
                   styles.editButton,
-                  styles.editButtonDark,
+                  { backgroundColor: theme.button },
                 ]}
                 onPress={() => setShowEditModal(true)}
               >
-                <Text style={styles.buttonText}>Edit Profile</Text>
+                <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                  Edit Profile
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.actionButton,
                   styles.deleteButton,
-                  styles.deleteButtonDark,
+                  { backgroundColor: theme.error },
                 ]}
                 onPress={() => setShowDeleteConfirm(true)}
               >
-                <Text style={styles.buttonText}>Delete Account</Text>
+                <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                  Delete Account
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -194,7 +211,7 @@ const Profile = () => {
         >
           {!isBlocked && (
             <View style={styles.postsContainer}>
-              <Text style={[styles.sectionTitle, styles.textDark]}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>
                 User Posts
               </Text>
               <UserPosts userId={id} scrollEnabled={false} />
@@ -227,11 +244,13 @@ const Profile = () => {
         onRequestClose={() => setShowDeleteConfirm(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, styles.modalDark]}>
-            <Text style={[styles.modalTitle, styles.textDark]}>
+          <View
+            style={[styles.modalContainer, { backgroundColor: theme.card }]}
+          >
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
               Confirm Account Deletion
             </Text>
-            <Text style={[styles.modalText, styles.textDark]}>
+            <Text style={[styles.modalText, { color: theme.text }]}>
               Are you sure you want to delete your account? This action cannot
               be undone.
             </Text>
@@ -240,21 +259,25 @@ const Profile = () => {
                 style={[
                   styles.modalButton,
                   styles.deleteButton,
-                  styles.deleteButtonDark,
+                  { backgroundColor: theme.error },
                 ]}
                 onPress={handleDeleteAccount}
               >
-                <Text style={styles.buttonText}>Delete</Text>
+                <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                  Delete
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.modalButton,
                   styles.cancelButton,
-                  styles.cancelButtonDark,
+                  { backgroundColor: theme.border },
                 ]}
                 onPress={() => setShowDeleteConfirm(false)}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -269,9 +292,6 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  containerDark: {
-    backgroundColor: "#111827",
   },
   loadingContainer: {
     justifyContent: "center",
@@ -292,9 +312,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  profileHeaderDark: {
-    backgroundColor: "#1f2937",
   },
   profileContent: {
     flexDirection: "row",
@@ -319,9 +336,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarFallbackDark: {
-    backgroundColor: "#374151",
-  },
   profileDetails: {
     flex: 1,
   },
@@ -339,7 +353,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    color: "#9ca3af",
   },
   profileName: {
     fontSize: 24,
@@ -362,25 +375,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginHorizontal: 4,
   },
-  editButton: {
-    backgroundColor: "#3b82f6",
-  },
-  editButtonDark: {
-    backgroundColor: "#2563eb",
-  },
-  deleteButton: {
-    backgroundColor: "#ef4444",
-  },
-  deleteButtonDark: {
-    backgroundColor: "#dc2626",
-  },
+  editButton: {},
+  deleteButton: {},
   buttonText: {
-    color: "#ffffff",
     fontWeight: "600",
     fontSize: 16,
-  },
-  textDark: {
-    color: "#f9fafb",
   },
   modalOverlay: {
     flex: 1,
@@ -397,9 +396,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  modalDark: {
-    backgroundColor: "#1f2937",
   },
   modalTitle: {
     fontSize: 20,
@@ -422,12 +418,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginHorizontal: 4,
   },
-  cancelButton: {
-    backgroundColor: "#6b7280",
-  },
-  cancelButtonDark: {
-    backgroundColor: "#4b5563",
-  },
+  cancelButton: {},
   postsContainer: {
     paddingHorizontal: 16,
     marginBottom: 16,

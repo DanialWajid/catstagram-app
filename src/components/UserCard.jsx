@@ -9,14 +9,14 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-``;
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { User, Ban } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "../store/authStore";
+import { useTheme } from "../store/themeContext";
 
-const API_URL = "http://192.168.0.107:8000/api";
+const API_URL = "http://192.168.10.9:8000/api";
 
 const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const navigation = useNavigation();
@@ -25,6 +25,8 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const [requestId, setRequestId] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const { user } = useAuthStore();
+  const { theme } = useTheme();
+
   useEffect(() => {
     const fetchUserStatus = async () => {
       try {
@@ -73,7 +75,7 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
                   "Success",
                   `User ${cardUser.name} has been blocked.`
                 );
-                onFriendUpdate();
+                onFriendUpdate && onFriendUpdate();
               }
             } catch (error) {
               console.error("Error blocking user:", error);
@@ -115,7 +117,7 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
                   "Success",
                   `User ${cardUser.name} has been unblocked.`
                 );
-                onFriendUpdate();
+                onFriendUpdate && onFriendUpdate();
               }
             } catch (error) {
               console.error("Error unblocking user:", error);
@@ -141,7 +143,7 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
 
       const response = await axios.post(
         `${API_URL}/friends/request/${cardUser._id}`,
-        {}, // Empty body since this route doesn't need one
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -151,8 +153,8 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
 
       const { request } = response.data;
       setRequestSent(true);
-      setRequestId(request.id); // Adjusted to match your backend's response shape
-      onFriendUpdate();
+      setRequestId(request.id);
+      onFriendUpdate && onFriendUpdate();
       Alert.alert("Success", `Friend request sent to ${cardUser.name}.`);
     } catch (error) {
       console.error(
@@ -188,7 +190,7 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
 
               setRequestSent(false);
               setRequestId(null);
-              onFriendUpdate();
+              onFriendUpdate && onFriendUpdate();
             } catch (error) {
               console.error(
                 "Error unsending friend request:",
@@ -227,7 +229,7 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
                   Authorization: `Bearer ${token}`,
                 },
               });
-              onFriendUpdate();
+              onFriendUpdate && onFriendUpdate();
               Alert.alert(
                 "Success",
                 `${cardUser.name} has been removed from your friends.`
@@ -253,25 +255,29 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
       return {
         text: "Blocked",
         onPress: handleUnblockUser,
-        style: styles.blockedButton,
+        style: { backgroundColor: theme.error },
+        textStyle: { color: theme.buttonText },
       };
     } else if (isFriend) {
       return {
         text: "Remove Friend",
         onPress: handleRemoveFriend,
-        style: styles.darkRemoveFriendButton,
+        style: { backgroundColor: theme.error },
+        textStyle: { color: theme.buttonText },
       };
     } else if (requestSent) {
       return {
         text: "Cancel Request",
         onPress: handleUnsendRequest,
-        style: styles.darkCancelRequestButton,
+        style: { backgroundColor: theme.border },
+        textStyle: { color: theme.text },
       };
     } else {
       return {
         text: "Send Friend Request",
         onPress: handleFriendRequest,
-        style: styles.darkSendRequestButton,
+        style: { backgroundColor: theme.button },
+        textStyle: { color: theme.buttonText },
       };
     }
   };
@@ -279,34 +285,38 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const buttonConfig = getButtonConfig();
 
   return (
-    <LinearGradient
-      colors={["#111827", "#4c1d95", "#000000"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.cardContainer, { borderColor: "#7c3aed" }]}
+    <View
+      style={[
+        styles.cardContainer,
+        {
+          backgroundColor: theme.card,
+          borderColor: theme.accent,
+          shadowColor: theme.accent,
+        },
+      ]}
     >
       <TouchableOpacity
         style={styles.blockButton}
         onPress={isBlocked ? handleUnblockUser : handleBlockUser}
+        disabled={isLoading}
       >
-        <Ban size={20} color={isBlocked ? "#ffffff" : "#ef4444"} />
+        <Ban size={20} color={isBlocked ? theme.buttonText : theme.error} />
       </TouchableOpacity>
 
       <View style={styles.cardContent}>
         {cardUser.profileImage ? (
           <Image
             source={{ uri: cardUser.profileImage }}
-            style={[styles.avatar, { borderColor: "#7c3aed" }]}
+            style={[styles.avatar, { borderColor: theme.accent }]}
           />
         ) : (
           <View
             style={[
               styles.avatarFallback,
-              styles.darkAvatarFallback,
-              { borderColor: "#7c3aed" },
+              { backgroundColor: theme.input, borderColor: theme.accent },
             ]}
           >
-            <User size={40} color={"#e5e7eb"} />
+            <User size={40} color={theme.secondaryText} />
           </View>
         )}
 
@@ -314,49 +324,49 @@ const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
           <TouchableOpacity
             onPress={() => navigation.navigate("Profile", { id: cardUser._id })}
           >
-            <Text style={[styles.userName, styles.darkText]}>
+            <Text style={[styles.userName, { color: theme.text }]}>
               {cardUser.name}
             </Text>
           </TouchableOpacity>
 
-          <Text style={styles.userEmail}>
+          <Text style={[styles.userEmail, { color: theme.secondaryText }]}>
             {isPrivate ? "Email is private" : cardUser.email}
           </Text>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[
-                styles.button,
-                styles.viewProfileButton,
-                styles.darkViewProfileButton,
-              ]}
+              style={[styles.button, { backgroundColor: theme.button }]}
               onPress={() =>
                 navigation.navigate("Profile", { id: cardUser._id })
               }
               disabled={isLoading}
             >
-              <Text style={styles.buttonText}>View Profile</Text>
+              <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                View Profile
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.button,
                 buttonConfig.style,
-                (isBlocked || isLoading) && styles.disabledButton,
+                isLoading && styles.disabledButton,
               ]}
               onPress={buttonConfig.onPress}
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#ffffff" />
+                <ActivityIndicator size="small" color={theme.buttonText} />
               ) : (
-                <Text style={styles.buttonText}>{buttonConfig.text}</Text>
+                <Text style={[styles.buttonText, buttonConfig.textStyle]}>
+                  {buttonConfig.text}
+                </Text>
               )}
             </TouchableOpacity>
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -365,7 +375,6 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 16,
     borderWidth: 1,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -402,12 +411,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 16,
   },
-  darkAvatarFallback: {
-    backgroundColor: "#4c1d95",
-  },
-  lightAvatarFallback: {
-    backgroundColor: "#e5e7eb",
-  },
   userInfo: {
     flex: 1,
   },
@@ -416,15 +419,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 4,
   },
-  darkText: {
-    color: "#ffffff",
-  },
-  lightText: {
-    color: "#111827",
-  },
   userEmail: {
     fontSize: 14,
-    color: "#9ca3af",
     marginBottom: 12,
   },
   buttonContainer: {
@@ -440,44 +436,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minWidth: 120,
+    marginRight: 8,
+    marginBottom: 8,
   },
-  viewProfileButton: {
-    backgroundColor: "#3b82f6",
-  },
-  darkViewProfileButton: {
-    backgroundColor: "#2563eb",
-  },
-  lightViewProfileButton: {
-    backgroundColor: "#3b82f6",
-  },
-  darkSendRequestButton: {
-    backgroundColor: "#059669",
-  },
-  lightSendRequestButton: {
-    backgroundColor: "#10b981",
-  },
-  darkCancelRequestButton: {
-    backgroundColor: "#6b7280",
-  },
-  lightCancelRequestButton: {
-    backgroundColor: "#9ca3af",
-  },
-  darkRemoveFriendButton: {
-    backgroundColor: "#dc2626",
-  },
-  lightRemoveFriendButton: {
-    backgroundColor: "#ef4444",
-  },
-  blockedButton: {
-    backgroundColor: "#dc2626",
+  buttonText: {
+    fontWeight: "600",
+    fontSize: 14,
   },
   disabledButton: {
     opacity: 0.5,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontWeight: "600",
-    fontSize: 14,
   },
 });
 

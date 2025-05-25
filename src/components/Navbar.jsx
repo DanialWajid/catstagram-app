@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import {
   View,
@@ -18,7 +16,9 @@ import {
   UserPlus,
   Key,
 } from "lucide-react-native";
-import ChangePasswordModal from "./ChangePasswordModal"; // Import the modal component
+import ChangePasswordModal from "./ChangePasswordModal";
+import { useTheme } from "../store/themeContext";
+import ThemeToggle from "./ThemeToggle";
 
 const logo = require("../assets/images/logo.jpg");
 
@@ -26,6 +26,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   const handleLogout = () => {
     navigation.navigate("Login");
@@ -36,32 +37,35 @@ const Navbar = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.navbar}>
+    <View style={[styles.container, { backgroundColor: theme.navbar, borderBottomColor: theme.border }]}>
+      <View style={[styles.navbar, { backgroundColor: theme.navbar }]}>
         {/* Logo and Title */}
         <TouchableOpacity
           style={styles.logoContainer}
           onPress={() => navigation.navigate("Home")}
         >
           <Image source={logo} style={styles.logo} />
-          <Text style={styles.title}>Catstagram</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Catstagram</Text>
         </TouchableOpacity>
 
-        {/* Menu Toggle Button */}
-        <TouchableOpacity onPress={toggleMenu} style={styles.menuButton}>
-          {isMenuOpen ? (
-            <CloseIcon width={24} height={24} color="#FFFFFF" />
-          ) : (
-            <HamburgerIcon width={24} height={24} color="#FFFFFF" />
-          )}
-        </TouchableOpacity>
+        {/* Theme Toggle and Menu */}
+        <View style={styles.rightContainer}>
+          <ThemeToggle />
+          <TouchableOpacity onPress={toggleMenu} style={styles.menuButton}>
+            {isMenuOpen ? (
+              <CloseIcon width={24} height={24} color={theme.text} />
+            ) : (
+              <HamburgerIcon width={24} height={24} color={theme.text} />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Menu (Dropdown) */}
       {isMenuOpen && (
-        <View style={styles.menu}>
+        <View style={[styles.menu, { backgroundColor: theme.navbar, borderBottomColor: theme.border }]}>
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.navbar }]}
             onPress={() => {
               navigation.navigate("Friends");
               toggleMenu();
@@ -70,14 +74,14 @@ const Navbar = () => {
             <Users
               width={20}
               height={20}
-              color="#FFFFFF"
+              color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={styles.menuText}>My Friends</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>My Friends</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.navbar }]}
             onPress={() => {
               navigation.navigate("FriendRequests");
               toggleMenu();
@@ -86,14 +90,14 @@ const Navbar = () => {
             <UserPlus
               width={20}
               height={20}
-              color="#FFFFFF"
+              color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={styles.menuText}>Friend Requests</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Friend Requests</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.navbar }]}
             onPress={() => {
               setShowPasswordModal(true);
               toggleMenu();
@@ -102,14 +106,14 @@ const Navbar = () => {
             <Key
               width={20}
               height={20}
-              color="#FFFFFF"
+              color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={styles.menuText}>Change Password</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Change Password</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.navbar }]}
             onPress={() => {
               handleLogout();
               toggleMenu();
@@ -118,10 +122,10 @@ const Navbar = () => {
             <LogOut
               width={20}
               height={20}
-              color="#FFFFFF"
+              color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={styles.menuText}>Logout</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Logout</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -138,12 +142,11 @@ const Navbar = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: "#000000", // Black background for the navbar
     borderBottomWidth: 1,
-    borderBottomColor: "#6B7280",
     zIndex: 10,
   },
   navbar: {
@@ -152,7 +155,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#000000", // Black background for navbar
   },
   logoContainer: {
     flexDirection: "row",
@@ -166,23 +168,24 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "InstagramLogo",
     fontSize: 40,
-    color: "#fff",
     marginLeft: 8,
-
     textShadowColor: "rgba(0, 0, 0, 0.2)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
   },
   menuButton: {
     padding: 8,
   },
   menu: {
     width: "100%",
-    backgroundColor: "#000000", // Black background for dropdown
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#6B7280",
   },
   menuItem: {
     flexDirection: "row",
@@ -191,7 +194,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     marginVertical: 4,
-    backgroundColor: "#000000", // Black background for each item
   },
   menuIcon: {
     marginRight: 8,
@@ -199,7 +201,6 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#FFFFFF", // White text color for menu items
   },
 });
 

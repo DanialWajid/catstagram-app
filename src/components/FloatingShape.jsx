@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect } from "react";
+import { StyleSheet } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,16 +7,23 @@ import Animated, {
   withTiming,
   withDelay,
   Easing,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
+import { useTheme } from "../store/themeContext";
 
 const FloatingShape = ({ size, top, left, delay }) => {
-  const backgroundColor = 'rgba(192, 132, 252, 0.2)';
-  
+  const { theme, themeName } = useTheme();
+
+  // Use theme accent color with different opacity for dark/light mode
+  const backgroundColor =
+    themeName === "dark"
+      ? "rgba(124, 58, 237, 0.18)" // theme.accent, more subtle in dark
+      : "rgba(124, 58, 237, 0.13)"; // theme.accent, lighter in light
+
   // Animation values
   const translateY = useSharedValue(0);
   const translateX = useSharedValue(0);
   const rotation = useSharedValue(0);
-  
+
   // Start animations
   React.useEffect(() => {
     // Y animation
@@ -28,7 +35,7 @@ const FloatingShape = ({ size, top, left, delay }) => {
         true
       )
     );
-    
+
     // X animation
     translateX.value = withDelay(
       delay,
@@ -38,7 +45,7 @@ const FloatingShape = ({ size, top, left, delay }) => {
         true
       )
     );
-    
+
     // Rotation animation
     rotation.value = withDelay(
       delay,
@@ -49,7 +56,7 @@ const FloatingShape = ({ size, top, left, delay }) => {
       )
     );
   }, []);
-  
+
   // Create animated style
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -60,23 +67,23 @@ const FloatingShape = ({ size, top, left, delay }) => {
       ],
     };
   });
-  
+
   // Determine size class
   let sizeStyle = {};
   switch (size) {
-    case 'w-16 h-16':
+    case "w-16 h-16":
       sizeStyle = { width: 64, height: 64 };
       break;
-    case 'w-24 h-24':
+    case "w-24 h-24":
       sizeStyle = { width: 96, height: 96 };
       break;
-    case 'w-32 h-32':
+    case "w-32 h-32":
       sizeStyle = { width: 128, height: 128 };
       break;
     default:
       sizeStyle = { width: 64, height: 64 };
   }
-  
+
   return (
     <Animated.View
       style={[
@@ -84,6 +91,8 @@ const FloatingShape = ({ size, top, left, delay }) => {
         { top, left, backgroundColor },
         sizeStyle,
         animatedStyle,
+        // Optionally, add a subtle border using theme.accent
+        { borderColor: theme.accent, borderWidth: 1 },
       ]}
       accessibilityElementsHidden={true}
       importantForAccessibility="no"
@@ -93,9 +102,9 @@ const FloatingShape = ({ size, top, left, delay }) => {
 
 const styles = StyleSheet.create({
   shape: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 999,
-    opacity: 0.2,
+    opacity: 0.22,
   },
 });
 

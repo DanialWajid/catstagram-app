@@ -14,20 +14,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import PasswordMeter from "../../components/PasswordStrengthMeter";
 import { useAuthStore } from "../../store/authStore";
-import { use } from "react";
+import { useTheme } from "../../store/themeContext";
+import ThemeToggle from "../../components/ThemeToggle";
 
 const Signup = ({ onSignup }) => {
   const navigation = useNavigation();
-  const [username, setUsername] = useState(""); // Added username
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { theme } = useTheme();
 
   const { signup, error, isLoading } = useAuthStore();
+
   const handleSignUp = async () => {
-    // 1) Basic empty-field validation
     if (!username.trim() || !email.trim() || !password.trim()) {
       return Alert.alert("Error", "Please fill in all fields.");
     }
@@ -50,37 +52,40 @@ const Signup = ({ onSignup }) => {
       setLoading(false);
     }
   };
+
   const goToLogin = () => {
     navigation.navigate("Login");
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <LinearGradient
-        colors={["#4c1d95", "#7e22ce", "#6b21a8"]}
-        style={styles.background}
-      >
-        <View style={styles.card}>
-          <View style={styles.toggleContainer}>
-            <Ionicons name="sunny" size={20} color="#34d399" />
-            <View style={styles.toggleCircle} />
-          </View>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
+      <StatusBar
+        barStyle={theme.mode === "dark" ? "light-content" : "dark-content"}
+      />
+      <LinearGradient colors={theme.gradient} style={styles.background}>
+        <View style={[styles.card, { backgroundColor: theme.card }]}>
+          <ThemeToggle style={styles.toggleContainer} />
 
-          <Text style={styles.title}>Create Account</Text>
+          <Text style={[styles.title, { color: theme.accent }]}>
+            Create Account
+          </Text>
 
           {/* Username */}
-          <View style={styles.inputContainer}>
+          <View
+            style={[styles.inputContainer, { backgroundColor: theme.input }]}
+          >
             <Ionicons
               name="person-outline"
               size={20}
-              color="#34d399"
+              color={theme.accent}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.inputText }]}
               placeholder="Username"
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.secondaryText}
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
@@ -88,17 +93,19 @@ const Signup = ({ onSignup }) => {
           </View>
 
           {/* Email */}
-          <View style={styles.inputContainer}>
+          <View
+            style={[styles.inputContainer, { backgroundColor: theme.input }]}
+          >
             <Ionicons
               name="mail-outline"
               size={20}
-              color="#34d399"
+              color={theme.accent}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.inputText }]}
               placeholder="Email"
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.secondaryText}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -107,17 +114,19 @@ const Signup = ({ onSignup }) => {
           </View>
 
           {/* Password */}
-          <View style={styles.inputContainer}>
+          <View
+            style={[styles.inputContainer, { backgroundColor: theme.input }]}
+          >
             <Ionicons
               name="lock-closed-outline"
               size={20}
-              color="#34d399"
+              color={theme.accent}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.inputText }]}
               placeholder="Password"
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.secondaryText}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -129,7 +138,7 @@ const Signup = ({ onSignup }) => {
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={24}
-                color="#34d399"
+                color={theme.accent}
               />
             </TouchableOpacity>
           </View>
@@ -142,17 +151,21 @@ const Signup = ({ onSignup }) => {
           <TouchableOpacity
             onPress={handleSignUp}
             disabled={isLoading}
-            style={styles.loginButton}
+            style={[styles.loginButton, { backgroundColor: theme.button }]}
           >
-            <Text style={styles.loginButtonText}>
+            <Text style={[styles.loginButtonText, { color: theme.buttonText }]}>
               {isLoading ? "Creating Account..." : "Sign Up"}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Already have an account? </Text>
+            <Text style={[styles.signupText, { color: theme.secondaryText }]}>
+              Already have an account?{" "}
+            </Text>
             <TouchableOpacity onPress={goToLogin}>
-              <Text style={styles.signupLink}>Log in</Text>
+              <Text style={[styles.signupLink, { color: theme.accent }]}>
+                Log in
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -173,36 +186,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    backgroundColor: "rgba(30, 27, 75, 0.9)",
     borderRadius: 12,
     padding: 24,
     width: "85%",
     maxWidth: 400,
   },
   toggleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     alignSelf: "flex-end",
     marginBottom: 20,
-  },
-  toggleCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "white",
-    marginLeft: 5,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#34d399",
     marginBottom: 24,
     textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f1f5f9",
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
@@ -213,13 +214,11 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 50,
-    color: "#1e293b",
   },
   eyeIcon: {
     marginLeft: 8,
   },
   loginButton: {
-    backgroundColor: "#34d399",
     borderRadius: 8,
     height: 50,
     justifyContent: "center",
@@ -227,7 +226,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   loginButtonText: {
-    color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -236,11 +234,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 8,
   },
-  signupText: {
-    color: "#cbd5e1",
-  },
+  signupText: {},
   signupLink: {
-    color: "#34d399",
     fontWeight: "bold",
   },
 });

@@ -15,10 +15,9 @@ import Navbar from "../../components/Navbar";
 import PostCard from "../../components/PostCard";
 import axios from "axios";
 import { useFocusEffect } from "@react-navigation/native";
-// Import the icon library
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTheme } from "../../store/themeContext";
 
-const Home = ({ navigation }) => {
+const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -27,22 +26,22 @@ const Home = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
-  const API_URL = "http://192.168.0.107:8000/api";
+  const { theme } = useTheme();
+  const API_URL = "http://192.168.10.9:8000/api";
   const LIMIT = 5;
 
   // Initial load
   useEffect(() => {
     fetchInitialPosts();
+    // eslint-disable-next-line
   }, []);
 
   // Refresh posts when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      console.log("Home screen focused - refreshing posts");
       fetchInitialPosts();
-      return () => {
-        // Cleanup if needed
-      };
+      return () => {};
+      // eslint-disable-next-line
     }, [])
   );
 
@@ -66,8 +65,6 @@ const Home = ({ navigation }) => {
 
       const newPosts = response.data.data;
 
-      console.log(`Fetched ${newPosts.length} posts on refresh`);
-
       setPosts(newPosts);
       setPage(2); // Reset to page 2 for next load
 
@@ -77,6 +74,7 @@ const Home = ({ navigation }) => {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setSearchLoading(false);
     }
   };
 
@@ -91,8 +89,6 @@ const Home = ({ navigation }) => {
       );
 
       const newPosts = response.data.data;
-
-      console.log(`Fetched ${newPosts.length} more posts when scrolling`);
 
       if (newPosts.length < LIMIT) {
         setHasMore(false);
@@ -124,14 +120,8 @@ const Home = ({ navigation }) => {
   };
 
   const handleRefresh = async () => {
-    console.log("Pull-to-refresh triggered");
     setRefreshing(true);
     await fetchInitialPosts();
-  };
-
-  // Navigate to chat screen
-  const navigateToChat = () => {
-    navigation.navigate("chat");
   };
 
   // Create a truly unique key for each post
@@ -146,26 +136,38 @@ const Home = ({ navigation }) => {
   const renderPostItem = ({ item }) => <PostCard post={item} user={user} />;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Navbar />
 
       {/* 🔍 Search Bar */}
-      {/* <View style={styles.searchBarContainer}>
+      <View style={[styles.searchBarContainer, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: theme.input,
+              color: theme.inputText,
+              borderColor: theme.border,
+            },
+          ]}
           placeholder="Search posts..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={theme.secondaryText}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <TouchableOpacity
+          style={[styles.searchButton, { backgroundColor: theme.accent }]}
+          onPress={handleSearch}
+        >
           {searchLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={theme.buttonText} />
           ) : (
-            <Text style={styles.searchButtonText}>Search</Text>
+            <Text style={[styles.searchButtonText, { color: theme.buttonText }]}>
+              Search
+            </Text>
           )}
         </TouchableOpacity>
-      </View> */}
+      </View>
 
       <FlatList
         data={posts}
@@ -178,30 +180,25 @@ const Home = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#a78bfa"]}
-            tintColor="#a78bfa"
+            colors={[theme.accent]}
+            tintColor={theme.accent}
           />
         }
         ListFooterComponent={
           loading &&
-          !refreshing && <ActivityIndicator size="small" color="#a78bfa" />
+          !refreshing && <ActivityIndicator size="small" color={theme.accent} />
         }
         ListEmptyComponent={
           !loading &&
           !searchLoading && (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: theme.text }]}>
                 No posts found. Be the first to create a post!
               </Text>
             </View>
           )
         }
       />
-
-      {/* Floating Chat Button with Vector Icon */}
-      <TouchableOpacity style={styles.chatButton} onPress={navigateToChat}>
-        <MaterialCommunityIcons name="chat" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
 
       <View style={styles.sideNavWrapper}>
         <SideNav />
@@ -213,7 +210,6 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111827",
   },
   listContainer: {
     paddingBottom: 16,
@@ -222,18 +218,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 10,
     alignItems: "center",
-    backgroundColor: "#1f2937",
+    borderBottomWidth: 1,
+    borderColor: "#374151",
   },
   searchInput: {
     flex: 1,
-    backgroundColor: "#374151",
     padding: 10,
     margin: 5,
     borderRadius: 8,
-    color: "#f9fafb",
+    borderWidth: 1,
   },
   searchButton: {
-    backgroundColor: "#6366f1",
     marginLeft: 8,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -243,7 +238,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   searchButtonText: {
-    color: "#fff",
     fontWeight: "bold",
   },
   emptyContainer: {
@@ -253,31 +247,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     textAlign: "center",
-    color: "#f9fafb",
   },
   sideNavWrapper: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-  },
-  // Updated floating chat button styles - square with rounded corners
-  chatButton: {
-    position: "absolute",
-    right: 20,
-    bottom: 120, // Positioned higher from the bottom
-    backgroundColor: "#9333EA", // Black background
-    width: 56,
-    height: 56,
-    borderRadius: 16, // Rounded corners but not circular
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 8, // Android shadow
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
-    borderWidth: 0, // Remove border
   },
 });
 

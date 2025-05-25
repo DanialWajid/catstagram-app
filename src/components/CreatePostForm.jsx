@@ -20,11 +20,13 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { useTheme } from "../store/themeContext";
 
 const CreatePostForm = ({ navigation }) => {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
 
   const scale = useSharedValue(1);
 
@@ -92,7 +94,7 @@ const CreatePostForm = ({ navigation }) => {
 
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        "http://192.168.0.107:8000/api/posts",
+        "http://192.168.10.9:8000/api/posts",
         formData,
         {
           headers: {
@@ -122,19 +124,26 @@ const CreatePostForm = ({ navigation }) => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.contentContainer}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Create New Post</Text>
+      <View style={[styles.formContainer, { backgroundColor: theme.card }]}>
+        <Text style={[styles.title, { color: theme.text }]}>Create New Post</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Caption</Text>
+          <Text style={[styles.label, { color: theme.text }]}>Caption</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.input,
+                borderColor: theme.border,
+                color: theme.inputText,
+              },
+            ]}
             placeholder="What's on your mind?"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={theme.secondaryText}
             value={caption}
             onChangeText={setCaption}
             multiline
@@ -142,14 +151,20 @@ const CreatePostForm = ({ navigation }) => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Image</Text>
+          <Text style={[styles.label, { color: theme.text }]}>Image</Text>
 
           <TouchableOpacity
-            style={styles.imagePickerButton}
+            style={[
+              styles.imagePickerButton,
+              {
+                backgroundColor: theme.input,
+                borderColor: theme.border,
+              },
+            ]}
             onPress={pickImage}
           >
-            <Camera size={24} color="#f9fafb" />
-            <Text style={styles.imagePickerText}>
+            <Camera size={24} color={theme.text} />
+            <Text style={[styles.imagePickerText, { color: theme.text }]}>
               {image ? "Change Image" : "Select Image"}
             </Text>
           </TouchableOpacity>
@@ -161,7 +176,7 @@ const CreatePostForm = ({ navigation }) => {
                 style={styles.imagePreview}
                 resizeMode="cover"
               />
-              <View style={styles.imageSelectedIndicator}>
+              <View style={[styles.imageSelectedIndicator, { backgroundColor: theme.success }]}>
                 <Check size={16} color="#ffffff" />
               </View>
             </View>
@@ -172,6 +187,7 @@ const CreatePostForm = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.submitButton,
+              { backgroundColor: theme.button },
               (!caption.trim() || !image || loading) && styles.disabledButton,
             ]}
             onPress={handleSubmit}
@@ -180,9 +196,9 @@ const CreatePostForm = ({ navigation }) => {
             onPressOut={handlePressOut}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color={theme.buttonText} />
             ) : (
-              <Text style={styles.submitButtonText}>Create Post</Text>
+              <Text style={[styles.submitButtonText, { color: theme.buttonText }]}>Create Post</Text>
             )}
           </TouchableOpacity>
         </Animated.View>
@@ -194,13 +210,11 @@ const CreatePostForm = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111827",
   },
   contentContainer: {
     padding: 16,
   },
   formContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     padding: 24,
     shadowColor: "#000",
@@ -214,7 +228,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
-    color: "#f9fafb",
   },
   inputContainer: {
     marginBottom: 16,
@@ -223,7 +236,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 8,
-    color: "#f9fafb",
   },
   input: {
     borderWidth: 1,
@@ -232,9 +244,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 100,
     textAlignVertical: "top",
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
-    color: "#f9fafb",
   },
   imagePickerButton: {
     flexDirection: "row",
@@ -244,13 +253,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderStyle: "dashed",
-    backgroundColor: "#1f2937",
-    borderColor: "#374151",
   },
   imagePickerText: {
     marginLeft: 8,
     fontSize: 16,
-    color: "#f9fafb",
   },
   imagePreviewContainer: {
     marginTop: 16,
@@ -266,7 +272,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: "#10b981",
     borderRadius: 12,
     padding: 4,
   },
@@ -278,13 +283,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
   },
   disabledButton: {
     opacity: 0.5,
   },
   submitButtonText: {
-    color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
   },

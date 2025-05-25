@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Check, X } from "lucide-react-native";
+import { useTheme } from "../store/themeContext";
 
 const PasswordCriteria = ({ password }) => {
+  const { theme } = useTheme();
   const criteria = [
     { label: "At least 8 characters", met: password.length >= 8 },
     { label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
@@ -16,14 +18,14 @@ const PasswordCriteria = ({ password }) => {
       {criteria.map((item) => (
         <View key={item.label} style={styles.criteriaItem}>
           {item.met ? (
-            <Check color="#10B981" size={16} />
+            <Check color={theme.success} size={16} />
           ) : (
-            <X color="#9CA3AF" size={16} />
+            <X color={theme.secondaryText} size={16} />
           )}
           <Text
             style={[
               styles.criteriaText,
-              { color: item.met ? "#10B981" : "#9CA3AF" },
+              { color: item.met ? theme.success : theme.secondaryText },
             ]}
           >
             {item.label}
@@ -35,6 +37,8 @@ const PasswordCriteria = ({ password }) => {
 };
 
 const PasswordStrengthMeter = ({ password }) => {
+  const { theme } = useTheme();
+
   const getStrength = (pass) => {
     let strength = 0;
     if (pass.length >= 8) strength++;
@@ -55,14 +59,28 @@ const PasswordStrengthMeter = ({ password }) => {
   };
 
   const getStrengthColor = (strength) => {
-    return ["#DC2626", "#F87171", "#FBBF24", "#FACC15", "#10B981"][strength];
+    // Use theme colors for weak/good/strong
+    const colors = [
+      theme.error, // Very Weak
+      "#F87171", // Weak
+      "#FBBF24", // Fair
+      "#FACC15", // Good
+      theme.success, // Strong
+    ];
+    return colors[strength];
   };
 
   return (
     <View>
       <View style={styles.strengthHeader}>
-        <Text style={styles.strengthLabel}>Password strength</Text>
-        <Text style={styles.strengthText}>{getStrengthText(strength)}</Text>
+        <Text style={[styles.strengthLabel, { color: theme.secondaryText }]}>
+          Password strength
+        </Text>
+        <Text
+          style={[styles.strengthText, { color: getStrengthColor(strength) }]}
+        >
+          {getStrengthText(strength)}
+        </Text>
       </View>
 
       <View style={styles.strengthBar}>
@@ -73,7 +91,7 @@ const PasswordStrengthMeter = ({ password }) => {
               styles.strengthSegment,
               {
                 backgroundColor:
-                  index < strength ? getStrengthColor(strength) : "#374151",
+                  index < strength ? getStrengthColor(strength) : theme.border,
               },
             ]}
           />
@@ -93,11 +111,10 @@ const styles = StyleSheet.create({
   },
   strengthLabel: {
     fontSize: 12,
-    color: "#9CA3AF",
   },
   strengthText: {
     fontSize: 12,
-    color: "#9CA3AF",
+    fontWeight: "bold",
   },
   strengthBar: {
     flexDirection: "row",
@@ -108,6 +125,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 4,
     borderRadius: 8,
+    marginHorizontal: 1,
   },
   criteriaContainer: {
     marginTop: 8,

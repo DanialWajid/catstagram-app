@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  Pressable,
   ActivityIndicator,
   Dimensions,
   Image,
@@ -16,6 +15,7 @@ import axios from "axios";
 import { useAuthStore } from "../store/authStore";
 import { User, X } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../store/themeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -25,13 +25,15 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
-  const API_URL = "http://192.168.0.107:8000/";
+  const API_URL = "http://192.168.10.9:8000/";
 
   useEffect(() => {
     if (isOpen) {
       fetchFriends();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId]);
 
   const fetchFriends = async () => {
@@ -106,7 +108,7 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
 
   const renderFriendCard = ({ item }) => (
     <TouchableOpacity
-      style={styles.friendCard}
+      style={[styles.friendCard, { backgroundColor: theme.card }]}
       onPress={() => {
         onClose();
         navigation.navigate("Profile", { id: item._id });
@@ -115,15 +117,23 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
       {item.profileImage ? (
         <Image source={{ uri: item.profileImage }} style={styles.avatar} />
       ) : (
-        <View style={styles.avatarFallback}>
-          <User size={32} color="#9ca3af" />
+        <View
+          style={[styles.avatarFallback, { backgroundColor: theme.border }]}
+        >
+          <User size={32} color={theme.secondaryText} />
         </View>
       )}
       <View style={styles.friendInfo}>
-        <Text style={styles.friendName} numberOfLines={1}>
+        <Text
+          style={[styles.friendName, { color: theme.text }]}
+          numberOfLines={1}
+        >
           {item.name}
         </Text>
-        <Text style={styles.friendEmail} numberOfLines={1}>
+        <Text
+          style={[styles.friendEmail, { color: theme.secondaryText }]}
+          numberOfLines={1}
+        >
           {item.email}
         </Text>
       </View>
@@ -140,17 +150,26 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Friends List</Text>
+        <View
+          style={[
+            styles.modalContainer,
+            { backgroundColor: theme.card, shadowColor: theme.accent },
+          ]}
+        >
+          <View
+            style={[styles.modalHeader, { borderBottomColor: theme.border }]}
+          >
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              Friends List
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color="#9ca3af" />
+              <X size={24} color={theme.secondaryText} />
             </TouchableOpacity>
           </View>
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#60a5fa" />
+              <ActivityIndicator size="large" color={theme.accent} />
             </View>
           ) : (
             <View style={styles.friendsContent}>
@@ -161,7 +180,9 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
                     {/* Mutual Friends Section */}
                     {mutualFriends.length > 0 && (
                       <View style={styles.sectionContainer}>
-                        <Text style={styles.sectionTitle}>
+                        <Text
+                          style={[styles.sectionTitle, { color: theme.text }]}
+                        >
                           Mutual Friends ({mutualFriends.length})
                         </Text>
                         <FlatList
@@ -176,7 +197,9 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
 
                     {/* Other Friends Section Header */}
                     <View style={styles.sectionContainer}>
-                      <Text style={styles.sectionTitle}>
+                      <Text
+                        style={[styles.sectionTitle, { color: theme.text }]}
+                      >
                         {userId === user._id ? "All Friends" : "Other Friends"}{" "}
                         ({otherFriends.length})
                       </Text>
@@ -188,7 +211,9 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.mainListContent}
                 ListEmptyComponent={
-                  <Text style={styles.emptyText}>
+                  <Text
+                    style={[styles.emptyText, { color: theme.secondaryText }]}
+                  >
                     {userId === user._id
                       ? "You don't have any friends yet"
                       : "No other friends to show"}
@@ -212,15 +237,13 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: width * 0.9,
-    height: "80%", // Changed from maxHeight to height
+    height: "80%",
     borderRadius: 12,
     overflow: "hidden",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    backgroundColor: "#1f2937",
   },
   modalHeader: {
     flexDirection: "row",
@@ -228,12 +251,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#374151",
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#f9fafb",
   },
   closeButton: {
     padding: 4,
@@ -254,7 +275,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     padding: 16,
     paddingBottom: 8,
-    color: "#f9fafb",
   },
   friendsList: {
     paddingHorizontal: 16,
@@ -265,7 +285,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
-    backgroundColor: "#374151",
   },
   avatar: {
     width: 48,
@@ -278,7 +297,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#4b5563",
   },
   friendInfo: {
     marginLeft: 12,
@@ -291,7 +309,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   mainListContent: {
-    paddingBottom: 20, // Add some bottom padding
+    paddingBottom: 20,
   },
   friendsListContent: {
     paddingBottom: 10,
@@ -299,11 +317,9 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#f9fafb",
   },
   friendEmail: {
     fontSize: 14,
-    color: "#9ca3af",
   },
   emptyContainer: {
     padding: 32,
@@ -312,7 +328,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
     padding: 20,
   },
 });

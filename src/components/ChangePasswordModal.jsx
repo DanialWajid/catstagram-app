@@ -1,156 +1,163 @@
-import React, { useState, memo, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
+import React, { useState, memo, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
   Platform,
-  Pressable
-} from 'react-native';
-import { Eye, EyeOff, X } from 'lucide-react-native';
-import { useAuthStore } from '../store/authStore';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring 
-} from 'react-native-reanimated';
+  Pressable,
+} from "react-native";
+import { Eye, EyeOff, X } from "lucide-react-native";
+import { useAuthStore } from "../store/authStore";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
+import { useTheme } from "../store/themeContext";
 
-const PasswordInput = memo(({ 
-  label, 
-  value, 
-  onChangeText, 
-  secureTextEntry, 
-  toggleVisibility, 
-  showPassword, 
-  required 
-}) => {
-  const colors = {
-    text: '#ffffff',
-    background: '#374151',
-    border: '#4b5563',
-    icon: '#fff'
-  };
+const PasswordInput = memo(
+  ({
+    label,
+    value,
+    onChangeText,
+    secureTextEntry,
+    toggleVisibility,
+    showPassword,
+    required,
+  }) => {
+    const { theme } = useTheme();
 
-  return (
-    <View style={styles.inputContainer}>
-      <Text style={[styles.label, { color: colors.text }]}>
-        {label}
-      </Text>
-      <View style={[styles.inputWrapper, { 
-        backgroundColor: colors.background,
-        borderColor: colors.border
-      }]}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          secureTextEntry={secureTextEntry}
-          style={[styles.input, { color: colors.text }]}
-          required={required}
-        />
-        <TouchableOpacity 
-          onPress={toggleVisibility} 
-          style={styles.eyeButton}
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+        <View
+          style={[
+            styles.inputWrapper,
+            {
+              backgroundColor: theme.input,
+              borderColor: theme.border,
+            },
+          ]}
         >
-          {showPassword ? 
-            <EyeOff size={20} color={colors.icon} /> : 
-            <Eye size={20} color={colors.icon} />
-          }
-        </TouchableOpacity>
+          <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            secureTextEntry={secureTextEntry}
+            style={[styles.input, { color: theme.inputText }]}
+            required={required}
+          />
+          <TouchableOpacity onPress={toggleVisibility} style={styles.eyeButton}>
+            {showPassword ? (
+              <EyeOff size={20} color={theme.text} />
+            ) : (
+              <Eye size={20} color={theme.text} />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  }
+);
 
 const ChangePasswordModal = ({ onClose }) => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
-  const [validationError, setValidationError] = useState('');
-  
-  const { changePassword, isLoading, error, message, clearError } = useAuthStore();
-    
+  const [validationError, setValidationError] = useState("");
+
+  const { changePassword, isLoading, error, message, clearError } =
+    useAuthStore();
+  const { theme } = useTheme();
+
   const scale = useSharedValue(1);
-  
+
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
+    transform: [{ scale: scale.value }],
   }));
 
-  const handlePressIn = () => scale.value = withSpring(0.95);
-  const handlePressOut = () => scale.value = withSpring(1);
+  const handlePressIn = () => (scale.value = withSpring(0.95));
+  const handlePressOut = () => (scale.value = withSpring(1));
 
   useEffect(() => {
-    // Clear error when component mounts
     return () => {
       clearError();
     };
   }, []);
 
   const handleSubmit = async () => {
-    setValidationError('');
+    setValidationError("");
 
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      setValidationError('All fields are required');
+      setValidationError("All fields are required");
       return;
     }
 
     if (newPassword.length < 8) {
-      setValidationError('New password must be at least 8 characters long');
+      setValidationError("New password must be at least 8 characters long");
       return;
     }
 
     if (currentPassword === newPassword) {
-      setValidationError('New password must be different from the current password');
+      setValidationError(
+        "New password must be different from the current password"
+      );
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      setValidationError('New passwords do not match');
+      setValidationError("New passwords do not match");
       return;
     }
 
     try {
       await changePassword(currentPassword, newPassword);
       if (!error) {
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmNewPassword('');
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
-  };
-
-  const modalColors = {
-    background: '#1f2937',
-    text: '#ffffff',
-    icon: '#fff',
-    button: '#3b82f6'
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.centeredView}
     >
       <Pressable style={styles.backdrop} onPress={onClose} />
-      
-      <View style={[styles.modalView, { backgroundColor: modalColors.background }]}>
+
+      <View style={[styles.modalView, { backgroundColor: theme.card }]}>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <X size={24} color={modalColors.icon} />
+          <X size={24} color={theme.text} />
         </TouchableOpacity>
-        
-        <Text style={[styles.title, { color: modalColors.text }]}>
+
+        <Text style={[styles.title, { color: theme.text }]}>
           Change Password
         </Text>
-        
-        {error && <Text style={styles.errorText}>{error}</Text>}
-        {message && <Text style={styles.successText}>{message}</Text>}
-        {validationError && <Text style={styles.errorText}>{validationError}</Text>}
+
+        {error && (
+          <Text style={[styles.errorText, { color: theme.error }]}>
+            {error}
+          </Text>
+        )}
+        {message && (
+          <Text style={[styles.successText, { color: theme.success }]}>
+            {message}
+          </Text>
+        )}
+        {validationError && (
+          <Text style={[styles.errorText, { color: theme.error }]}>
+            {validationError}
+          </Text>
+        )}
 
         <View style={styles.form}>
           <PasswordInput
@@ -158,11 +165,13 @@ const ChangePasswordModal = ({ onClose }) => {
             value={currentPassword}
             onChangeText={setCurrentPassword}
             secureTextEntry={!showCurrentPassword}
-            toggleVisibility={() => setShowCurrentPassword(!showCurrentPassword)}
+            toggleVisibility={() =>
+              setShowCurrentPassword(!showCurrentPassword)
+            }
             showPassword={showCurrentPassword}
             required
           />
-          
+
           <PasswordInput
             label="New Password"
             value={newPassword}
@@ -172,27 +181,29 @@ const ChangePasswordModal = ({ onClose }) => {
             showPassword={showNewPassword}
             required
           />
-          
+
           <PasswordInput
             label="Confirm New Password"
             value={confirmNewPassword}
             onChangeText={setConfirmNewPassword}
             secureTextEntry={!showConfirmNewPassword}
-            toggleVisibility={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+            toggleVisibility={() =>
+              setShowConfirmNewPassword(!showConfirmNewPassword)
+            }
             showPassword={showConfirmNewPassword}
             required
           />
 
           <Animated.View style={animatedStyle}>
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: modalColors.button }]}
+              style={[styles.button, { backgroundColor: theme.button }]}
               onPress={handleSubmit}
               disabled={isLoading}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
             >
-              <Text style={styles.buttonText}>
-                {isLoading ? 'Changing...' : 'Change Password'}
+              <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                {isLoading ? "Changing..." : "Change Password"}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -205,22 +216,22 @@ const ChangePasswordModal = ({ onClose }) => {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   backdrop: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalView: {
-    width: '90%',
+    width: "90%",
     borderRadius: 20,
     padding: 25,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -230,16 +241,16 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 15,
     right: 15,
     padding: 5,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   form: {
     marginTop: 15,
@@ -252,8 +263,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -271,22 +282,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 15,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
-    color: '#ef4444',
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   successText: {
-    color: '#10b981',
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

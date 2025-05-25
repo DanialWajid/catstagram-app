@@ -13,6 +13,7 @@ import axios from "axios";
 import UserCard from "../../components/UserCard";
 import { useAuthStore } from "../../store/authStore";
 import * as SecureStore from "expo-secure-store";
+import { useTheme } from "../../store/themeContext";
 
 const Friends = () => {
   const [friends, setFriends] = useState([]);
@@ -21,8 +22,9 @@ const Friends = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
+  const { theme } = useTheme();
 
-  const API_URL = "http://192.168.0.107:8000";
+  const API_URL = "http://192.168.10.9:8000";
 
   useEffect(() => {
     fetchData();
@@ -32,17 +34,13 @@ const Friends = () => {
     try {
       setLoading(true);
       const token = await SecureStore.getItemAsync("token");
-      console.log(token);
-      console.log("user " + user._id);
 
       if (activeTab === "friends") {
-        // Updated endpoint to match backend
         const response = await axios.get(
           `${API_URL}/api/friends/list/${user._id}`
         );
         setFriends(response.data);
       } else {
-        // Updated endpoint to match backend
         const response = await axios.get(
           `${API_URL}/api/friends/requests/pending`,
           {
@@ -72,16 +70,13 @@ const Friends = () => {
   const handleRequestAction = async (requestId, action) => {
     try {
       const token = await SecureStore.getItemAsync("token");
-
-      // Updated endpoint to match backend
       const endpoint = action === "approve" ? "approve" : "decline";
       await axios.post(
         `${API_URL}/api/friends/request/${endpoint}/${requestId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      fetchData(); // Refresh the data after action
+      fetchData();
     } catch (error) {
       console.error(`Error ${action}ing request:`, error);
       Alert.alert("Error", `Failed to ${action} request`);
@@ -98,20 +93,25 @@ const Friends = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Tab Buttons */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "friends" && styles.activeTab,
+            { backgroundColor: theme.card, borderColor: theme.border },
+            activeTab === "friends" && {
+              backgroundColor: theme.accent,
+              borderColor: theme.accent,
+            },
           ]}
           onPress={() => setActiveTab("friends")}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === "friends" && styles.activeTabText,
+              { color: theme.secondaryText },
+              activeTab === "friends" && { color: theme.buttonText },
             ]}
           >
             My Friends ({friends.length})
@@ -121,14 +121,19 @@ const Friends = () => {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "requests" && styles.activeTab,
+            { backgroundColor: theme.card, borderColor: theme.border },
+            activeTab === "requests" && {
+              backgroundColor: theme.accent,
+              borderColor: theme.accent,
+            },
           ]}
           onPress={() => setActiveTab("requests")}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === "requests" && styles.activeTabText,
+              { color: theme.secondaryText },
+              activeTab === "requests" && { color: theme.buttonText },
             ]}
           >
             Requests ({requests.length})
@@ -140,7 +145,7 @@ const Friends = () => {
       <View style={styles.contentContainer}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#a78bfa" />
+            <ActivityIndicator size="large" color={theme.accent} />
           </View>
         ) : (
           <FlatList
@@ -150,7 +155,9 @@ const Friends = () => {
             contentContainerStyle={styles.listContainer}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
+                <Text
+                  style={[styles.emptyText, { color: theme.secondaryText }]}
+                >
                   {activeTab === "friends"
                     ? "No friends yet"
                     : "No pending requests"}
@@ -161,8 +168,8 @@ const Friends = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={["#a78bfa"]}
-                tintColor="#a78bfa"
+                colors={[theme.accent]}
+                tintColor={theme.accent}
               />
             }
           />
@@ -175,7 +182,6 @@ const Friends = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111827",
   },
   tabContainer: {
     flexDirection: "row",
@@ -190,18 +196,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#4b5563",
-  },
-  activeTab: {
-    backgroundColor: "#7c3aed",
+    borderWidth: 1.5,
   },
   tabText: {
     fontWeight: "600",
     fontSize: 16,
-    color: "#e5e7eb",
-  },
-  activeTabText: {
-    color: "#ffffff",
   },
   contentContainer: {
     flex: 1,
@@ -224,7 +223,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
     textAlign: "center",
   },
 });

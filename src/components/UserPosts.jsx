@@ -10,15 +10,17 @@ import axios from "axios";
 import PostCard from "./PostCard";
 import { useAuthStore } from "../store/authStore";
 import * as SecureStore from "expo-secure-store";
+import { useTheme } from "../store/themeContext";
 
 const UserPosts = ({ userId, scrollEnabled = true }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuthStore();
+  const { theme } = useTheme();
 
   useEffect(() => {
-    const API_URL = "http://192.168.0.107:8000";
+    const API_URL = "http://192.168.10.9:8000";
 
     const fetchUserPosts = async () => {
       try {
@@ -51,25 +53,25 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#60a5fa" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+        <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {posts.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No posts yet</Text>
+          <Text style={[styles.emptyText, { color: theme.secondaryText }]}>No posts yet</Text>
         </View>
       ) : (
         <FlatList
@@ -93,23 +95,25 @@ const styles = StyleSheet.create({
     padding: 40,
     justifyContent: "center",
     alignItems: "center",
+    flex: 1,
   },
   errorContainer: {
     padding: 40,
     justifyContent: "center",
     alignItems: "center",
+    flex: 1,
   },
   errorText: {
-    color: "#ef4444",
     textAlign: "center",
+    fontSize: 16,
   },
   emptyContainer: {
     padding: 40,
     justifyContent: "center",
     alignItems: "center",
+    flex: 1,
   },
   emptyText: {
-    color: "#9ca3af",
     textAlign: "center",
     fontSize: 16,
   },
