@@ -30,7 +30,7 @@ const Home = () => {
   const { user } = useAuthStore();
   const { theme } = useTheme();
   const navigation = useNavigation();
-  const API_URL = "http://192.168.100.87:8000/api";
+  const API_URL = "http://192.168.0.110:8000/api";
   const LIMIT = 5;
 
   // Initial load

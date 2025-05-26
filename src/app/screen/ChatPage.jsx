@@ -134,7 +134,7 @@ const ChatPage = () => {
   const { user } = useAuthStore();
   const navigation = useNavigation();
 
-  const API_URL = "http://192.168.100.87:8000/api";
+  const API_URL = "http://192.168.0.110:8000/api";
 
   // Enhanced Socket Connection with better error handling and reconnection
   useEffect(() => {
@@ -723,16 +723,6 @@ const ChatPage = () => {
             <Text style={styles.sectionUnreadCount}> ({totalUnread})</Text>
           )}
         </Text>
-        {showToggle && data.length > 3 && (
-          <TouchableOpacity
-            onPress={() => setShowAllFriends(!showAllFriends)}
-            style={styles.toggleButton}
-          >
-            <Text style={styles.toggleButtonText}>
-              {showAllFriends ? "Show Less" : `Show All (${data.length})`}
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
     );
   };
@@ -768,7 +758,7 @@ const ChatPage = () => {
     if (availableFriends.length > 0) {
       const friendsToShow = showAllFriends
         ? availableFriends
-        : availableFriends.slice(0, 3);
+        : availableFriends.slice(0, 50);
       sections.push({
         title: "Start New Chat",
         data: friendsToShow,
@@ -858,7 +848,7 @@ const ChatPage = () => {
           )}
         </View>
       )}
-      <SideNav/>
+      <SideNav />
     </View>
   );
 };

@@ -20,7 +20,7 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    const API_URL = "http://192.168.100.87:8000";
+    const API_URL = "http://192.168.0.110:8000";
 
     const fetchUserPosts = async () => {
       try {
