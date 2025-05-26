@@ -19,8 +19,11 @@ import { useAuthStore } from "../../store/authStore";
 import { User, Send, Users, Settings } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import SocketService from "../../services/socket";
+import { useTheme } from "../../store/themeContext";
 
+// Update TypingIndicator component to use theme
 const TypingIndicator = ({ typingUsers }) => {
+  const { theme } = useTheme();
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -55,19 +58,42 @@ const TypingIndicator = ({ typingUsers }) => {
 
   return (
     <Animated.View style={[styles.typingContainer, { opacity }]}>
-      <View style={styles.typingBubble}>
-        <Text style={styles.typingText}>{getTypingText()}</Text>
+      <View style={[styles.typingBubble, { backgroundColor: theme.input }]}>
+        <Text style={[styles.typingText, { color: theme.secondaryText }]}>
+          {getTypingText()}
+        </Text>
         <View style={styles.typingDots}>
-          <View style={[styles.dot, styles.dot1]} />
-          <View style={[styles.dot, styles.dot2]} />
-          <View style={[styles.dot, styles.dot3]} />
+          <View
+            style={[
+              styles.dot,
+              styles.dot1,
+              { backgroundColor: theme.secondaryText },
+            ]}
+          />
+          <View
+            style={[
+              styles.dot,
+              styles.dot2,
+              { backgroundColor: theme.secondaryText },
+            ]}
+          />
+          <View
+            style={[
+              styles.dot,
+              styles.dot3,
+              { backgroundColor: theme.secondaryText },
+            ]}
+          />
         </View>
       </View>
     </Animated.View>
   );
 };
 
+// Update the DateSeparator component to use theme
 const DateSeparator = ({ date }) => {
+  const { theme } = useTheme();
+
   const formatDate = (dateString) => {
     const messageDate = new Date(dateString);
     const today = new Date();
@@ -107,16 +133,127 @@ const DateSeparator = ({ date }) => {
 
   return (
     <View style={styles.dateSeparatorContainer}>
-      <View style={styles.dateSeparatorLine} />
-      <View style={styles.dateSeparatorBubble}>
-        <Text style={styles.dateSeparatorText}>{formatDate(date)}</Text>
+      <View
+        style={[styles.dateSeparatorLine, { backgroundColor: theme.border }]}
+      />
+      <View
+        style={[styles.dateSeparatorBubble, { backgroundColor: theme.input }]}
+      >
+        <Text
+          style={[styles.dateSeparatorText, { color: theme.secondaryText }]}
+        >
+          {formatDate(date)}
+        </Text>
       </View>
-      <View style={styles.dateSeparatorLine} />
+      <View
+        style={[styles.dateSeparatorLine, { backgroundColor: theme.border }]}
+      />
     </View>
   );
 };
 
 const ChatMessage = () => {
+  // ... all existing state and logic
+  const { theme } = useTheme();
+
+  // Create dynamic styles inside the component
+  const dynamicStyles = {
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      paddingTop: 50,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      backgroundColor: theme.card,
+    },
+    headerAvatarFallback: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.input,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    groupHeaderAvatar: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.cardHighlight || theme.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: theme.accent,
+    },
+    dateSeparatorLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: theme.border,
+    },
+    dateSeparatorBubble: {
+      backgroundColor: theme.input,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      marginHorizontal: 12,
+    },
+    myMessage: {
+      alignSelf: "flex-end",
+      backgroundColor: theme.accent,
+      borderBottomRightRadius: 4,
+    },
+    theirMessage: {
+      alignSelf: "flex-start",
+      backgroundColor: theme.input,
+      borderBottomLeftRadius: 4,
+    },
+    typingBubble: {
+      backgroundColor: theme.input,
+      borderRadius: 16,
+      padding: 12,
+      maxWidth: "80%",
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      backgroundColor: theme.card,
+    },
+    textInput: {
+      flex: 1,
+      backgroundColor: theme.input,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginRight: 12,
+      color: theme.inputText,
+      fontSize: 16,
+      maxHeight: 100,
+    },
+    sendButtonActive: {
+      backgroundColor: theme.accent,
+    },
+    sendButtonInactive: {
+      backgroundColor: theme.input,
+    },
+  };
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -361,28 +498,29 @@ const ChatMessage = () => {
       return <DateSeparator date={item.date} />;
     }
 
-    // Render message
     const isMyMessage = item.sender._id === user._id;
 
     return (
       <View
         style={[
           styles.messageContainer,
-          isMyMessage ? styles.myMessage : styles.theirMessage,
+          isMyMessage ? dynamicStyles.myMessage : dynamicStyles.theirMessage,
         ]}
       >
         {!isMyMessage && chatData?.isGroupChat && (
-          <Text style={styles.senderName}>{item.sender.name}</Text>
+          <Text style={[styles.senderName, { color: theme.secondaryText }]}>
+            {item.sender.name}
+          </Text>
         )}
         <Text
           style={[
             styles.messageText,
-            isMyMessage ? styles.myMessageText : styles.theirMessageText,
+            isMyMessage ? { color: theme.buttonText } : { color: theme.text },
           ]}
         >
           {item.content}
         </Text>
-        <Text style={styles.timestamp}>
+        <Text style={[styles.timestamp, { color: theme.secondaryText }]}>
           {new Date(item.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -397,26 +535,28 @@ const ChatMessage = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#9333EA" />
-        <Text style={styles.loadingText}>Loading messages...</Text>
+      <View style={dynamicStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.accent} />
+        <Text style={[styles.loadingText, { color: theme.secondaryText }]}>
+          Loading messages...
+        </Text>
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={dynamicStyles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={dynamicStyles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>←</Text>
+          <Text style={[styles.backButtonText, { color: theme.text }]}>←</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -424,8 +564,8 @@ const ChatMessage = () => {
           onPress={displayInfo.isGroup ? navigateToGroupSettings : undefined}
         >
           {displayInfo.isGroup ? (
-            <View style={styles.groupHeaderAvatar}>
-              <Users size={20} color="#9333EA" />
+            <View style={dynamicStyles.groupHeaderAvatar}>
+              <Users size={20} color={theme.accent} />
             </View>
           ) : displayInfo.image ? (
             <Image
@@ -433,15 +573,20 @@ const ChatMessage = () => {
               style={styles.headerAvatar}
             />
           ) : (
-            <View style={styles.headerAvatarFallback}>
-              <User size={20} color="#9ca3af" />
+            <View style={dynamicStyles.headerAvatarFallback}>
+              <User size={20} color={theme.secondaryText} />
             </View>
           )}
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerUserName}>
+            <Text style={[styles.headerUserName, { color: theme.text }]}>
               {displayInfo.name}
               {displayInfo.isGroup && (
-                <Text style={styles.memberCountHeader}>
+                <Text
+                  style={[
+                    styles.memberCountHeader,
+                    { color: theme.secondaryText },
+                  ]}
+                >
                   {" "}
                   ({displayInfo.memberCount})
                 </Text>
@@ -457,7 +602,7 @@ const ChatMessage = () => {
               style={styles.settingsButton}
               onPress={navigateToGroupSettings}
             >
-              <Settings size={20} color="#9ca3af" />
+              <Settings size={20} color={theme.secondaryText} />
             </TouchableOpacity>
           )}
           <View
@@ -486,7 +631,7 @@ const ChatMessage = () => {
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
               {displayInfo.isGroup
                 ? "Welcome to the group! Start the conversation!"
                 : "No messages yet. Start the conversation!"}
@@ -497,15 +642,15 @@ const ChatMessage = () => {
       />
 
       {/* Input */}
-      <View style={styles.inputContainer}>
+      <View style={dynamicStyles.inputContainer}>
         <TextInput
-          style={styles.textInput}
+          style={dynamicStyles.textInput}
           value={newMessage}
           onChangeText={handleTyping}
           placeholder={`Message ${
             displayInfo.isGroup ? displayInfo.name : displayInfo.name
           }...`}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={theme.secondaryText}
           multiline
           maxLength={500}
           editable={!sending}
@@ -517,18 +662,22 @@ const ChatMessage = () => {
           style={[
             styles.sendButton,
             newMessage.trim() && !sending
-              ? styles.sendButtonActive
-              : styles.sendButtonInactive,
+              ? dynamicStyles.sendButtonActive
+              : dynamicStyles.sendButtonInactive,
           ]}
           onPress={sendMessage}
           disabled={!newMessage.trim() || sending}
         >
           {sending ? (
-            <ActivityIndicator size={16} color="#ffffff" />
+            <ActivityIndicator size={16} color={theme.buttonText} />
           ) : (
             <Send
               size={20}
-              color={newMessage.trim() && !sending ? "#ffffff" : "#6b7280"}
+              color={
+                newMessage.trim() && !sending
+                  ? theme.buttonText
+                  : theme.secondaryText
+              }
             />
           )}
         </TouchableOpacity>
@@ -537,32 +686,11 @@ const ChatMessage = () => {
   );
 };
 
+// Remove all theme references from StyleSheet.create()
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111827",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#111827",
-  },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#9ca3af",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingTop: 50,
-    borderBottomWidth: 1,
-    borderBottomColor: "#374151",
-    backgroundColor: "#1f2937",
   },
   backButton: {
     padding: 8,
@@ -570,7 +698,6 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: "#f9fafb",
     fontWeight: "bold",
   },
   headerUserInfo: {
@@ -589,33 +716,13 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
   },
-  headerAvatarFallback: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#374151",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  groupHeaderAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#1e1b4b",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#9333EA",
-  },
   headerUserName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#f9fafb",
     textAlign: "center",
   },
   memberCountHeader: {
     fontSize: 14,
-    color: "#9ca3af",
     fontWeight: "normal",
   },
   onlineStatus: {
@@ -651,20 +758,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     paddingHorizontal: 16,
   },
-  dateSeparatorLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#374151",
-  },
-  dateSeparatorBubble: {
-    backgroundColor: "#374151",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginHorizontal: 12,
-  },
   dateSeparatorText: {
-    color: "#9ca3af",
     fontSize: 12,
     fontWeight: "500",
     textAlign: "center",
@@ -675,19 +769,8 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
   },
-  myMessage: {
-    alignSelf: "flex-end",
-    backgroundColor: "#9333EA",
-    borderBottomRightRadius: 4,
-  },
-  theirMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: "#374151",
-    borderBottomLeftRadius: 4,
-  },
   senderName: {
     fontSize: 12,
-    color: "#9ca3af",
     marginBottom: 4,
     fontWeight: "500",
   },
@@ -695,15 +778,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
   },
-  myMessageText: {
-    color: "#ffffff",
-  },
-  theirMessageText: {
-    color: "#f9fafb",
-  },
   timestamp: {
     fontSize: 12,
-    color: "#9ca3af",
     marginTop: 4,
     alignSelf: "flex-end",
   },
@@ -715,23 +791,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
     textAlign: "center",
   },
   typingContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  typingBubble: {
-    backgroundColor: "#374151",
-    borderRadius: 16,
-    padding: 12,
-    maxWidth: "80%",
-    flexDirection: "row",
-    alignItems: "center",
-  },
   typingText: {
-    color: "#9ca3af",
     fontSize: 14,
     marginRight: 8,
   },
@@ -742,7 +808,6 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#9ca3af",
     marginHorizontal: 1,
   },
   dot1: {
@@ -754,37 +819,12 @@ const styles = StyleSheet.create({
   dot3: {
     opacity: 1,
   },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#374151",
-    backgroundColor: "#1f2937",
-  },
-  textInput: {
-    flex: 1,
-    backgroundColor: "#374151",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 12,
-    color: "#f9fafb",
-    fontSize: 16,
-    maxHeight: 100,
-  },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-  },
-  sendButtonActive: {
-    backgroundColor: "#9333EA",
-  },
-  sendButtonInactive: {
-    backgroundColor: "#374151",
   },
 });
 

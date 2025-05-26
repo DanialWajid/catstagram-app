@@ -17,6 +17,7 @@ import {
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
+import { useTheme } from "../../store/themeContext";
 import { User, MessageCircle, Users, Plus } from "lucide-react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import SocketService from "../../services/socket";
@@ -25,20 +26,22 @@ import SideNav from "../../components/SideNav";
 const { width } = Dimensions.get("window");
 
 // Unread Badge Component
-const UnreadBadge = ({ count }) => {
+const UnreadBadge = ({ count, theme }) => {
   if (!count || count === 0) return null;
 
   const displayCount = count > 99 ? "99+" : count.toString();
 
   return (
-    <View style={styles.unreadBadge}>
-      <Text style={styles.unreadBadgeText}>{displayCount}</Text>
+    <View style={[styles.unreadBadge, { backgroundColor: theme.accent }]}>
+      <Text style={[styles.unreadBadgeText, { color: theme.buttonText }]}>
+        {displayCount}
+      </Text>
     </View>
   );
 };
 
 // Typing Indicator Component
-const TypingIndicator = ({ typingUsers, isGroupChat }) => {
+const TypingIndicator = ({ typingUsers, isGroupChat, theme }) => {
   const [dot1] = useState(new Animated.Value(0));
   const [dot2] = useState(new Animated.Value(0));
   const [dot3] = useState(new Animated.Value(0));
@@ -91,13 +94,16 @@ const TypingIndicator = ({ typingUsers, isGroupChat }) => {
 
   return (
     <View style={styles.typingContainer}>
-      <Text style={styles.typingText}>{getTypingText()}</Text>
+      <Text style={[styles.typingText, { color: theme.accent }]}>
+        {getTypingText()}
+      </Text>
       <View style={styles.dotsContainer}>
         <Animated.View
           style={[
             styles.dot,
             {
               opacity: dot1,
+              backgroundColor: theme.accent,
             },
           ]}
         />
@@ -106,6 +112,7 @@ const TypingIndicator = ({ typingUsers, isGroupChat }) => {
             styles.dot,
             {
               opacity: dot2,
+              backgroundColor: theme.accent,
             },
           ]}
         />
@@ -114,6 +121,7 @@ const TypingIndicator = ({ typingUsers, isGroupChat }) => {
             styles.dot,
             {
               opacity: dot3,
+              backgroundColor: theme.accent,
             },
           ]}
         />
@@ -132,6 +140,7 @@ const ChatPage = () => {
   const [typingStatus, setTypingStatus] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({}); // { chatId: count }
   const { user } = useAuthStore();
+  const { theme } = useTheme();
   const navigation = useNavigation();
 
   const API_URL = "http://192.168.0.110:8000/api";
@@ -580,6 +589,67 @@ const ChatPage = () => {
     return "";
   };
 
+  // Create dynamic styles inside the component
+  const dynamicStyles = {
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      paddingTop: 50,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      backgroundColor: theme.card,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.background,
+    },
+    chatCard: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    chatCardUnread: {
+      borderColor: theme.accent,
+      backgroundColor: theme.cardHighlight || theme.card,
+    },
+    friendCard: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    avatarFallback: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: theme.input,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    groupAvatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: theme.cardHighlight || theme.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: theme.accent,
+    },
+  };
+
   const renderChatCard = ({ item }) => {
     const displayInfo = getChatDisplayInfo(item);
     const typingUsers = typingStatus[item._id] || [];
@@ -589,15 +659,18 @@ const ChatPage = () => {
 
     return (
       <TouchableOpacity
-        style={[styles.chatCard, hasUnread && styles.chatCardUnread]}
+        style={[
+          dynamicStyles.chatCard,
+          hasUnread && dynamicStyles.chatCardUnread,
+        ]}
         onPress={() => navigateToExistingChat(item)}
       >
         <View style={styles.chatCardContent}>
           <View style={styles.avatarContainer}>
             {displayInfo.isGroup ? (
               <View style={styles.groupAvatarContainer}>
-                <View style={styles.groupAvatar}>
-                  <Users size={24} color="#9333EA" />
+                <View style={dynamicStyles.groupAvatar}>
+                  <Users size={24} color={theme.accent} />
                 </View>
               </View>
             ) : displayInfo.image ? (
@@ -606,15 +679,15 @@ const ChatPage = () => {
                 style={styles.avatar}
               />
             ) : (
-              <View style={styles.avatarFallback}>
-                <User size={32} color="#9ca3af" />
+              <View style={dynamicStyles.avatarFallback}>
+                <User size={32} color={theme.secondaryText} />
               </View>
             )}
 
             {/* Unread badge on avatar */}
             {hasUnread && (
               <View style={styles.avatarBadgeContainer}>
-                <UnreadBadge count={unreadCount} />
+                <UnreadBadge count={unreadCount} theme={theme} />
               </View>
             )}
           </View>
@@ -622,12 +695,18 @@ const ChatPage = () => {
           <View style={styles.chatInfo}>
             <View style={styles.chatHeader}>
               <Text
-                style={[styles.chatName, hasUnread && styles.chatNameUnread]}
+                style={[
+                  styles.chatName,
+                  { color: theme.text },
+                  hasUnread && styles.chatNameUnread,
+                ]}
                 numberOfLines={1}
               >
                 {displayInfo.name}
                 {displayInfo.isGroup && (
-                  <Text style={styles.memberCount}>
+                  <Text
+                    style={[styles.memberCount, { color: theme.secondaryText }]}
+                  >
                     {" "}
                     ({displayInfo.memberCount})
                   </Text>
@@ -637,7 +716,11 @@ const ChatPage = () => {
                 <Text
                   style={[
                     styles.timestamp,
-                    hasUnread && styles.timestampUnread,
+                    { color: theme.secondaryText },
+                    hasUnread && [
+                      styles.timestampUnread,
+                      { color: theme.accent },
+                    ],
                   ]}
                 >
                   {getLastMessageTime(item)}
@@ -649,12 +732,17 @@ const ChatPage = () => {
               <TypingIndicator
                 typingUsers={typingUsers}
                 isGroupChat={displayInfo.isGroup}
+                theme={theme}
               />
             ) : (
               <Text
                 style={[
                   styles.lastMessage,
-                  hasUnread && styles.lastMessageUnread,
+                  { color: theme.secondaryText },
+                  hasUnread && [
+                    styles.lastMessageUnread,
+                    { color: theme.text },
+                  ],
                 ]}
                 numberOfLines={1}
               >
@@ -665,13 +753,16 @@ const ChatPage = () => {
 
           <View style={styles.chatIconContainer}>
             {displayInfo.isGroup ? (
-              <Users size={20} color="#9333EA" />
+              <Users size={20} color={theme.accent} />
             ) : (
-              <MessageCircle size={20} color="#9333EA" />
+              <MessageCircle size={20} color={theme.accent} />
             )}
 
-            {/* Additional unread indicator */}
-            {hasUnread && <View style={styles.unreadDot} />}
+            {hasUnread && (
+              <View
+                style={[styles.unreadDot, { backgroundColor: theme.accent }]}
+              />
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -680,29 +771,35 @@ const ChatPage = () => {
 
   const renderFriendCard = ({ item }) => (
     <TouchableOpacity
-      style={styles.friendCard}
+      style={dynamicStyles.friendCard}
       onPress={() => accessOrCreateChat(item._id)}
     >
       <View style={styles.chatCardContent}>
         {item.profileImage ? (
           <Image source={{ uri: item.profileImage }} style={styles.avatar} />
         ) : (
-          <View style={styles.avatarFallback}>
+          <View style={dynamicStyles.avatarFallback}>
             <User size={32} color="#9ca3af" />
           </View>
         )}
 
         <View style={styles.chatInfo}>
-          <Text style={styles.chatName} numberOfLines={1}>
+          <Text
+            style={[styles.chatName, { color: theme.text }]}
+            numberOfLines={1}
+          >
             {item.name}
           </Text>
-          <Text style={styles.lastMessage} numberOfLines={1}>
+          <Text
+            style={[styles.lastMessage, { color: theme.secondaryText }]}
+            numberOfLines={1}
+          >
             Tap to start chatting
           </Text>
         </View>
 
         <View style={styles.chatIconContainer}>
-          <MessageCircle size={20} color="#9333EA" />
+          <MessageCircle size={20} color={theme.accent} />
         </View>
       </View>
     </TouchableOpacity>
@@ -717,10 +814,13 @@ const ChatPage = () => {
 
     return (
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>
           {title}
           {totalUnread > 0 && (
-            <Text style={styles.sectionUnreadCount}> ({totalUnread})</Text>
+            <Text style={[styles.sectionUnreadCount, { color: theme.accent }]}>
+              {" "}
+              ({totalUnread})
+            </Text>
           )}
         </Text>
       </View>
@@ -772,9 +872,11 @@ const ChatPage = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#9333EA" />
-        <Text style={styles.loadingText}>Loading chats...</Text>
+      <View style={dynamicStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.accent} />
+        <Text style={[styles.loadingText, { color: theme.secondaryText }]}>
+          Loading chats...
+        </Text>
       </View>
     );
   }
@@ -782,15 +884,15 @@ const ChatPage = () => {
   const sections = prepareSectionData();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={dynamicStyles.container}>
+      <View style={dynamicStyles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>←</Text>
+          <Text style={[styles.backButtonText, { color: theme.text }]}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Chats</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Chats</Text>
         <View style={styles.headerButtons}>
           <TouchableOpacity
             style={styles.refreshButton}
@@ -799,13 +901,15 @@ const ChatPage = () => {
               handleRefresh();
             }}
           >
-            <Text style={styles.refreshButtonText}>↻</Text>
+            <Text style={[styles.refreshButtonText, { color: theme.accent }]}>
+              ↻
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.createGroupButton}
             onPress={navigateToCreateGroup}
           >
-            <Plus size={24} color="#9333EA" />
+            <Plus size={24} color={theme.accent} />
           </TouchableOpacity>
         </View>
       </View>
@@ -822,8 +926,8 @@ const ChatPage = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={["#9333EA"]}
-              tintColor="#9333EA"
+              colors={[theme.accent]}
+              tintColor={theme.accent}
             />
           }
           stickySectionHeadersEnabled={false}
@@ -831,8 +935,10 @@ const ChatPage = () => {
       ) : (
         <View style={styles.emptyContainer}>
           <MessageCircle size={64} color="#6b7280" />
-          <Text style={styles.emptyTitle}>No chats yet</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>
+            No chats yet
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: theme.secondaryText }]}>
             {friendsLoading
               ? "Loading friends..."
               : availableFriends.length === 0
@@ -842,7 +948,7 @@ const ChatPage = () => {
           {friendsLoading && (
             <ActivityIndicator
               size="small"
-              color="#9333EA"
+              color={theme.accent}
               style={styles.emptyLoader}
             />
           )}
@@ -853,48 +959,25 @@ const ChatPage = () => {
   );
 };
 
+// Remove theme references from StyleSheet.create()
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111827",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingTop: 50,
-    borderBottomWidth: 1,
-    borderBottomColor: "#374151",
-    backgroundColor: "#1f2937",
-  },
   backButton: {
     padding: 8,
   },
   backButtonText: {
     fontSize: 24,
-    color: "#f9fafb",
     fontWeight: "bold",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#f9fafb",
   },
   createGroupButton: {
     padding: 8,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#111827",
-  },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#9ca3af",
   },
   listContainer: {
     padding: 16,
@@ -910,41 +993,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#f9fafb",
   },
   sectionUnreadCount: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#9333EA",
   },
   toggleButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "#374151",
     borderRadius: 16,
   },
   toggleButtonText: {
-    color: "#9333EA",
     fontSize: 14,
     fontWeight: "500",
-  },
-  chatCard: {
-    backgroundColor: "#1f2937",
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  chatCardUnread: {
-    borderColor: "#9333EA",
-    backgroundColor: "#1e1b4b",
-  },
-  friendCard: {
-    backgroundColor: "#1f2937",
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#374151",
   },
   chatCardContent: {
     flexDirection: "row",
@@ -959,27 +1020,9 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  avatarFallback: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#374151",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   groupAvatarContainer: {
     width: 50,
     height: 50,
-  },
-  groupAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#1e1b4b",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#9333EA",
   },
   avatarBadgeContainer: {
     position: "absolute",
@@ -999,16 +1042,13 @@ const styles = StyleSheet.create({
   chatName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#f9fafb",
     flex: 1,
   },
   chatNameUnread: {
     fontWeight: "700",
-    color: "#ffffff",
   },
   memberCount: {
     fontSize: 14,
-    color: "#9ca3af",
     fontWeight: "normal",
   },
   timestampContainer: {
@@ -1016,19 +1056,15 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: "#9ca3af",
     marginLeft: 8,
   },
   timestampUnread: {
-    color: "#9333EA",
     fontWeight: "600",
   },
   lastMessage: {
     fontSize: 14,
-    color: "#9ca3af",
   },
   lastMessageUnread: {
-    color: "#d1d5db",
     fontWeight: "500",
   },
   chatIconContainer: {
@@ -1042,7 +1078,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#9333EA",
   },
   emptyContainer: {
     flex: 1,
@@ -1053,21 +1088,17 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#f9fafb",
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: "#9ca3af",
     textAlign: "center",
   },
   emptyLoader: {
     marginTop: 16,
   },
-  // Unread Badge Styles
   unreadBadge: {
-    backgroundColor: "#9333EA",
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -1076,18 +1107,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   unreadBadgeText: {
-    color: "#ffffff",
     fontSize: 12,
     fontWeight: "bold",
   },
-  // Typing Indicator Styles
   typingContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   typingText: {
     fontSize: 14,
-    color: "#9333EA",
     fontStyle: "italic",
     marginRight: 6,
   },
@@ -1099,7 +1127,6 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#9333EA",
     marginHorizontal: 1,
   },
   headerButtons: {
@@ -1112,7 +1139,6 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 20,
-    color: "#9333EA",
     fontWeight: "bold",
   },
 });
