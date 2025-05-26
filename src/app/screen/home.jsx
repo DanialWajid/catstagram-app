@@ -9,8 +9,6 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { MessageCircle } from "lucide-react-native";
 import { useAuthStore } from "../../store/authStore";
 import SideNav from "../../components/SideNav";
 import Navbar from "../../components/Navbar";
@@ -29,8 +27,7 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
   const { theme } = useTheme();
-  const navigation = useNavigation();
-  const API_URL = "http://192.168.0.110:8000/api";
+  const API_URL = "http://192.168.10.9:8000/api";
   const LIMIT = 5;
 
   // Initial load
@@ -127,10 +124,6 @@ const Home = () => {
     await fetchInitialPosts();
   };
 
-  const handleChatPress = () => {
-    navigation.navigate("ChatPage");
-  };
-
   // Create a truly unique key for each post
   const getUniqueKey = (item, index) => {
     if (item._id) {
@@ -147,9 +140,7 @@ const Home = () => {
       <Navbar />
 
       {/* 🔍 Search Bar */}
-      <View
-        style={[styles.searchBarContainer, { backgroundColor: theme.card }]}
-      >
+      <View style={[styles.searchBarContainer, { backgroundColor: theme.card }]}>
         <TextInput
           style={[
             styles.searchInput,
@@ -171,9 +162,7 @@ const Home = () => {
           {searchLoading ? (
             <ActivityIndicator size="small" color={theme.buttonText} />
           ) : (
-            <Text
-              style={[styles.searchButtonText, { color: theme.buttonText }]}
-            >
+            <Text style={[styles.searchButtonText, { color: theme.buttonText }]}>
               Search
             </Text>
           )}
@@ -211,21 +200,6 @@ const Home = () => {
         }
       />
 
-      {/* Floating Chat Button */}
-      <TouchableOpacity
-        style={[
-          styles.chatButton,
-          {
-            backgroundColor: theme.accent,
-            shadowColor: theme.accent,
-          },
-        ]}
-        onPress={handleChatPress}
-        activeOpacity={0.8}
-      >
-        <MessageCircle width={24} height={24} color={theme.buttonText} />
-      </TouchableOpacity>
-
       <View style={styles.sideNavWrapper}>
         <SideNav />
       </View>
@@ -244,6 +218,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 10,
     alignItems: "center",
+    borderBottomWidth: 1,
+    borderColor: "#374151",
   },
   searchInput: {
     flex: 1,
@@ -277,21 +253,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-  },
-  chatButton: {
-    position: "absolute",
-    bottom: 100, // Clear of the bottom navigation
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 8, // Android shadow
-    shadowOffset: { width: 0, height: 4 }, // iOS shadow
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    zIndex: 1000,
   },
 });
 

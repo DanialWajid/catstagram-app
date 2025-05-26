@@ -15,7 +15,10 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
-import { Camera, Check } from "lucide-react-native";
+import {
+  Camera,
+  Check,
+} from "lucide-react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -95,7 +98,7 @@ const EditPostForm = ({ post }) => {
       }
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        `http://192.168.0.110:8000/api/posts/edit/${post._id}`,
+        `http://192.168.10.9:8000/api/posts/edit/${post._id}`,
         formData,
         {
           headers: {

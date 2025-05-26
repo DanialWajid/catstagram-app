@@ -94,7 +94,7 @@ const CreatePostForm = ({ navigation }) => {
 
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        "http://192.168.0.110:8000/api/posts",
+        "http://192.168.10.9:8000/api/posts",
         formData,
         {
           headers: {
@@ -129,9 +129,7 @@ const CreatePostForm = ({ navigation }) => {
       keyboardShouldPersistTaps="handled"
     >
       <View style={[styles.formContainer, { backgroundColor: theme.card }]}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          Create New Post
-        </Text>
+        <Text style={[styles.title, { color: theme.text }]}>Create New Post</Text>
 
         <View style={styles.inputContainer}>
           <Text style={[styles.label, { color: theme.text }]}>Caption</Text>
@@ -178,12 +176,7 @@ const CreatePostForm = ({ navigation }) => {
                 style={styles.imagePreview}
                 resizeMode="cover"
               />
-              <View
-                style={[
-                  styles.imageSelectedIndicator,
-                  { backgroundColor: theme.success },
-                ]}
-              >
+              <View style={[styles.imageSelectedIndicator, { backgroundColor: theme.success }]}>
                 <Check size={16} color="#ffffff" />
               </View>
             </View>
@@ -205,11 +198,7 @@ const CreatePostForm = ({ navigation }) => {
             {loading ? (
               <ActivityIndicator size="small" color={theme.buttonText} />
             ) : (
-              <Text
-                style={[styles.submitButtonText, { color: theme.buttonText }]}
-              >
-                Create Post
-              </Text>
+              <Text style={[styles.submitButtonText, { color: theme.buttonText }]}>Create Post</Text>
             )}
           </TouchableOpacity>
         </Animated.View>

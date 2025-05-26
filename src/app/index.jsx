@@ -13,10 +13,6 @@ import EditPost from "./screen/EditPost";
 import CreatePost from "./screen/CreatePost";
 import Friends from "./screen/Friends";
 import Requests from "./screen/Requests";
-import ChatPage from "../app/screen/ChatPage";
-import ChatMessage from "../app/screen/ChatMessage";
-import CreateGroupChat from "../app/screen/CreateGroupChat";
-import GroupChatSettings from "../app/screen/GroupChatSettings";
 import { useAuthStore } from "../store/authStore";
 import { ThemeProvider } from "../store/themeContext";
 import * as Font from "expo-font";
@@ -62,10 +58,6 @@ const AppContent = () => {
       <Stack.Screen name="ExploreFriends" component={FriendsExplore} />
       <Stack.Screen name="FriendRequests" component={Requests} />
       <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="ChatPage" component={ChatPage} />
-      <Stack.Screen name="ChatMessage" component={ChatMessage} />
-      <Stack.Screen name="CreateGroupChat" component={CreateGroupChat} />
-      <Stack.Screen name="GroupChatSettings" component={GroupChatSettings} />
       <Stack.Screen
         name="Profile"
         component={Profile}

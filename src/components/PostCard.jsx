@@ -95,7 +95,7 @@ const PostCard = ({ post, user }) => {
           onPress: async () => {
             try {
               const response = await axios.delete(
-                `http://192.168.0.110:8000/api/posts/${post._id}`,
+                `http://192.168.10.9:8000/api/posts/${post._id}`,
                 {
                   headers: {
                     Authorization: `Bearer ${token}`,
@@ -148,7 +148,10 @@ const PostCard = ({ post, user }) => {
           {post.user.profileImage ? (
             <Image
               source={{ uri: post.user.profileImage }}
-              style={[styles.userImage, { borderColor: theme.accent }]}
+              style={[
+                styles.userImage,
+                { borderColor: theme.accent },
+              ]}
               onLoadStart={() => setImageLoading(true)}
               onLoadEnd={() => setImageLoading(false)}
             />
@@ -237,10 +240,7 @@ const PostCard = ({ post, user }) => {
 
       <View style={styles.actions}>
         <View style={styles.actionGroup}>
-          <TouchableOpacity
-            onPress={toggleLikePost}
-            style={styles.actionButton}
-          >
+          <TouchableOpacity onPress={toggleLikePost} style={styles.actionButton}>
             <Heart
               size={20}
               color={isLiked ? theme.error : theme.secondaryText}
@@ -265,21 +265,13 @@ const PostCard = ({ post, user }) => {
         </View>
 
         <View style={styles.actionGroup}>
-          <TouchableOpacity
-            onPress={toggleSavePost}
-            style={styles.actionButton}
-          >
+          <TouchableOpacity onPress={toggleSavePost} style={styles.actionButton}>
             <Bookmark
               filled={isSaved}
               color={isSaved ? theme.success : theme.secondaryText}
             />
           </TouchableOpacity>
-          <Text
-            style={[
-              styles.actionText,
-              { color: isSaved ? theme.success : theme.secondaryText },
-            ]}
-          >
+          <Text style={[styles.actionText, { color: isSaved ? theme.success : theme.secondaryText }]}>
             {isSaved ? "Saved" : "Save"}
           </Text>
         </View>
@@ -292,12 +284,7 @@ const PostCard = ({ post, user }) => {
         onRequestClose={() => setIsCommentModalOpen(false)}
       >
         <View style={styles.commentModalContainer}>
-          <View
-            style={[
-              styles.commentModalContent,
-              { backgroundColor: theme.card },
-            ]}
-          >
+          <View style={[styles.commentModalContent, { backgroundColor: theme.card }]}>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setIsCommentModalOpen(false)}

@@ -10,7 +10,7 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
   const { user } = useAuthStore();
   const { theme } = useTheme();
 
-  const API_URL = "http://192.168.0.110:8000/";
+    const API_URL = "http://192.168.10.9:8000/";
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -50,13 +50,11 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
     }
   }, [userId, user._id]);
 
-  if (loading) {
+  if(loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color="#60a5fa" />
-        <Text style={[styles.loadingText, { color: theme.text }]}>
-          Loading...
-        </Text>
+        <Text style={[styles.loadingText, { color: theme.text }]}>Loading...</Text>
       </View>
     );
   }
@@ -64,14 +62,12 @@ const FriendProtectedContent = ({ userId, children, fallbackMessage }) => {
   if (!canView) {
     return (
       <View style={[styles.fallbackContainer, { backgroundColor: theme.card }]}>
-        <Text style={[styles.fallbackText, { color: theme.secondaryText }]}>
-          {fallbackMessage}
-        </Text>
+        <Text style={[styles.fallbackText, { color: theme.secondaryText }]}>{fallbackMessage}</Text>
       </View>
     );
   }
   return children;
-};
+}                          
 
 const styles = StyleSheet.create({
   loadingContainer: {
@@ -91,6 +87,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
-});
+})
 
 export default FriendProtectedContent;

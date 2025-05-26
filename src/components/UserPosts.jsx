@@ -20,7 +20,7 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    const API_URL = "http://192.168.0.110:8000";
+    const API_URL = "http://192.168.10.9:8000";
 
     const fetchUserPosts = async () => {
       try {
@@ -53,9 +53,7 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
 
   if (loading) {
     return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: theme.background }]}
-      >
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
@@ -63,9 +61,7 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
 
   if (error) {
     return (
-      <View
-        style={[styles.errorContainer, { backgroundColor: theme.background }]}
-      >
+      <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
         <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
       </View>
     );
@@ -75,9 +71,7 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {posts.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
-            No posts yet
-          </Text>
+          <Text style={[styles.emptyText, { color: theme.secondaryText }]}>No posts yet</Text>
         </View>
       ) : (
         <FlatList
