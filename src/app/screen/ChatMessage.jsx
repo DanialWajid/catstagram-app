@@ -130,7 +130,7 @@ const ChatMessage = () => {
   const flatListRef = useRef(null);
 
   const { chatId, chatData } = route.params;
-  const API_URL = "http://192.168.0.109:8000/api";
+  const API_URL = "http://192.168.100.87:8000/api";
 
   useEffect(() => {
     console.log("ChatMessage component mounted for chat:", chatId);
@@ -408,6 +408,7 @@ const ChatMessage = () => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -436,7 +437,7 @@ const ChatMessage = () => {
               <User size={20} color="#9ca3af" />
             </View>
           )}
-          <View>
+          <View style={styles.headerTextContainer}>
             <Text style={styles.headerUserName}>
               {displayInfo.name}
               {displayInfo.isGroup && (
@@ -477,6 +478,7 @@ const ChatMessage = () => {
         style={styles.messagesList}
         contentContainerStyle={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => {
           if (groupedMessages.length > 0) {
             flatListRef.current?.scrollToEnd({ animated: true });
@@ -564,6 +566,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
+    width: 40,
   },
   backButtonText: {
     fontSize: 24,
@@ -575,12 +578,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
+    marginHorizontal: 16,
+  },
+  headerTextContainer: {
+    alignItems: "center",
+    marginLeft: 8,
   },
   headerAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: 8,
   },
   headerAvatarFallback: {
     width: 32,
@@ -589,7 +596,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#374151",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
   },
   groupHeaderAvatar: {
     width: 32,
@@ -598,7 +604,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1e1b4b",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
     borderWidth: 1,
     borderColor: "#9333EA",
   },
@@ -606,6 +611,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#f9fafb",
+    textAlign: "center",
   },
   memberCountHeader: {
     fontSize: 14,
@@ -615,10 +621,13 @@ const styles = StyleSheet.create({
   onlineStatus: {
     fontSize: 12,
     color: "#10b981",
+    textAlign: "center",
   },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
+    width: 40,
+    justifyContent: "flex-end",
   },
   settingsButton: {
     padding: 8,

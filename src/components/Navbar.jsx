@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
+    backgroundColor: 'transparent',
   },
   menuButton: {
     padding: 8,

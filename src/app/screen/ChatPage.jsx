@@ -20,6 +20,7 @@ import { useAuthStore } from "../../store/authStore";
 import { User, MessageCircle, Users, Plus } from "lucide-react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import SocketService from "../../services/socket";
+import SideNav from "../../components/SideNav";
 
 const { width } = Dimensions.get("window");
 
@@ -133,7 +134,7 @@ const ChatPage = () => {
   const { user } = useAuthStore();
   const navigation = useNavigation();
 
-  const API_URL = "http://192.168.0.109:8000/api";
+  const API_URL = "http://192.168.100.87:8000/api";
 
   // Enhanced Socket Connection with better error handling and reconnection
   useEffect(() => {
@@ -857,6 +858,7 @@ const ChatPage = () => {
           )}
         </View>
       )}
+      <SideNav/>
     </View>
   );
 };

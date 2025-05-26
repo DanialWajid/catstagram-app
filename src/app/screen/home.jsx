@@ -30,7 +30,7 @@ const Home = () => {
   const { user } = useAuthStore();
   const { theme } = useTheme();
   const navigation = useNavigation();
-  const API_URL = "http://192.168.0.109:8000/api";
+  const API_URL = "http://192.168.100.87:8000/api";
   const LIMIT = 5;
 
   // Initial load
@@ -244,8 +244,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 10,
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderColor: "#374151",
   },
   searchInput: {
     flex: 1,

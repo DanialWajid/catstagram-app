@@ -27,7 +27,7 @@ const CreateGroupChat = () => {
   const { user } = useAuthStore();
   const navigation = useNavigation();
 
-  const API_URL = "http://192.168.0.109:8000/api";
+  const API_URL = "http://192.168.100.87:8000/api";
 
   useEffect(() => {
     fetchFriends();

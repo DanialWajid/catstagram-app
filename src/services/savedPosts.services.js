@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const API_URL = "http://192.168.0.109:8000/api/saved-posts";
+const API_URL = "http://192.168.100.87:8000/api/saved-posts";
 
 export const savePost = async (userId, postId) => {
   try {

@@ -31,7 +31,7 @@ const ThemeToggle = ({ style }) => {
       activeOpacity={0.8}
     >
       <View style={[styles.switchTrack, {
-        backgroundColor: themeName === "dark" ? "#1e1e2e" : "#e0e7ff",
+        backgroundColor: themeName === "dark" ? "#000000" : "#ffffff",
         borderColor: theme.accent,
       }]}>
         <Animated.View

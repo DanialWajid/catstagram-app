@@ -34,7 +34,7 @@ const GroupChatSettings = () => {
   const route = useRoute();
 
   const { chatId, chatData } = route.params;
-  const API_URL = "http://192.168.0.107:8000/api";
+  const API_URL = "http://192.168.100.87:8000/api";
 
   useEffect(() => {
     setGroupData(chatData);
@@ -130,7 +130,7 @@ const GroupChatSettings = () => {
               }
             );
 
-            navigation.navigate("chat");
+            navigation.navigate("ChatPage");
             Alert.alert("Success", "You have left the group");
           } catch (error) {
             console.error("Error leaving group:", error);
