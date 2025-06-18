@@ -339,7 +339,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                   <Text
                     style={[styles.buttonText, { color: theme.buttonText }]}
                   >
-                    Save Changes
+                    Save
                   </Text>
                 )}
               </TouchableOpacity>
@@ -540,4 +540,3 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfileModal;
-

@@ -143,7 +143,7 @@ const ChatPage = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
 
-  const API_URL = "http://192.168.0.110:8000/api";
+  const API_URL = "http://192.168.0.111:8000/api";
 
   // Enhanced Socket Connection with better error handling and reconnection
   useEffect(() => {
@@ -888,7 +888,7 @@ const ChatPage = () => {
       <View style={dynamicStyles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("Home")}
         >
           <Text style={[styles.backButtonText, { color: theme.text }]}>←</Text>
         </TouchableOpacity>

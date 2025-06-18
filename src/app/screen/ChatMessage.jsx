@@ -90,7 +90,7 @@ const TypingIndicator = ({ typingUsers }) => {
   );
 };
 
-// Update the DateSeparator component to use theme
+// Update the DateSeparator component to use theme with rounded background
 const DateSeparator = ({ date }) => {
   const { theme } = useTheme();
 
@@ -204,9 +204,9 @@ const ChatMessage = () => {
     },
     dateSeparatorBubble: {
       backgroundColor: theme.input,
-      paddingHorizontal: 12,
+      paddingHorizontal: 16,
       paddingVertical: 6,
-      borderRadius: 12,
+      borderRadius: 20,
       marginHorizontal: 12,
     },
     myMessage: {
@@ -267,7 +267,7 @@ const ChatMessage = () => {
   const flatListRef = useRef(null);
 
   const { chatId, chatData } = route.params;
-  const API_URL = "http://192.168.0.110:8000/api";
+  const API_URL = "http://192.168.0.111:8000/api";
 
   useEffect(() => {
     console.log("ChatMessage component mounted for chat:", chatId);
@@ -554,7 +554,7 @@ const ChatMessage = () => {
       <View style={dynamicStyles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("ChatPage")}
         >
           <Text style={[styles.backButtonText, { color: theme.text }]}>←</Text>
         </TouchableOpacity>
@@ -757,6 +757,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 16,
     paddingHorizontal: 16,
+  },
+  dateSeparatorBubble: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginHorizontal: 12,
   },
   dateSeparatorText: {
     fontSize: 12,
