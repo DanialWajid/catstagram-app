@@ -119,7 +119,7 @@ const CreatePostForm = ({ navigation }) => {
         fileExtension === "jpg" ? "jpeg" : fileExtension
       }`;
 
-      formData.append("image", {
+      formData.append("profileImage", {
         // Changed from "profileImage" to "image"
         uri: Platform.OS === "ios" ? image.replace("file://", "") : image,
         name: filename,
@@ -139,7 +139,7 @@ const CreatePostForm = ({ navigation }) => {
       }
 
       const response = await axios.post(
-        "http://192.168.100.87:8000/api/posts", // Make sure this matches your backend endpoint
+        "https://catstagram-backend.up.railway.app/api/posts", // Make sure this matches your backend endpoint
         formData,
         {
           headers: {

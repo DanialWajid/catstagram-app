@@ -95,7 +95,7 @@ const EditPostForm = ({ post }) => {
       }
       const token = await SecureStore.getItemAsync("token");
       const response = await axios.post(
-        `http://192.168.0.110:8000/api/posts/edit/${post._id}`,
+        `https://catstagram-backend.up.railway.app/api/posts/edit/${post._id}`,
         formData,
         {
           headers: {

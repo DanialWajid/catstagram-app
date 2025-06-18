@@ -12,7 +12,7 @@ class SocketService {
       console.log("Connecting to socket server...");
       this.currentUser = { _id: userId, name: userName };
 
-      this.socket = io("http://192.168.0.110:8000", {
+      this.socket = io("https://catstagram-backend.up.railway.app", {
         transports: ["websocket"],
         timeout: 60000,
         forceNew: true,

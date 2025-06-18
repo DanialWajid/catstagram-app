@@ -147,7 +147,7 @@ const ChatPage = () => {
   const navbarTranslateY = useRef(new Animated.Value(0)).current;
   const isScrollingDown = useRef(false);
 
-  const API_URL = "http://192.168.0.110:8000/api";
+  const API_URL = "https://catstagram-backend.up.railway.app/api";
 
   // Enhanced Socket Connection with better error handling and reconnection
   useEffect(() => {

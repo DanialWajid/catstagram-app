@@ -267,7 +267,7 @@ const ChatMessage = () => {
   const flatListRef = useRef(null);
 
   const { chatId, chatData } = route.params;
-  const API_URL = "http://192.168.0.110:8000/api";
+  const API_URL = "https://catstagram-backend.up.railway.app/api";
 
   useEffect(() => {
     console.log("ChatMessage component mounted for chat:", chatId);

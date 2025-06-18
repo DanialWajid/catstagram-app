@@ -95,7 +95,7 @@ const PostCard = ({ post, user }) => {
           onPress: async () => {
             try {
               const response = await axios.delete(
-                `http://192.168.0.110:8000/api/posts/${post._id}`,
+                `https://catstagram-backend.up.railway.app/api/posts/${post._id}`,
                 {
                   headers: {
                     Authorization: `Bearer ${token}`,

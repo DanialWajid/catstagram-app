@@ -16,7 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "../store/authStore";
 import { useTheme } from "../store/themeContext";
 
-const API_URL = "http://192.168.0.110:8000/api";
+const API_URL = "https://catstagram-backend.up.railway.app/api";
 
 const UserCard = ({ cardUser, isPrivate, isFriend, onFriendUpdate }) => {
   const navigation = useNavigation();
