@@ -294,7 +294,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                   <Text
                     style={[styles.privacyOptionText, { color: theme.text }]}
                   >
-                    Public Profile
+                    Public
                   </Text>
                 </TouchableOpacity>
 
@@ -314,7 +314,7 @@ const EditProfileModal = ({ profile, onClose, onUpdate }) => {
                   <Text
                     style={[styles.privacyOptionText, { color: theme.text }]}
                   >
-                    Private Profile
+                    Private
                   </Text>
                 </TouchableOpacity>
               </View>
