@@ -15,6 +15,8 @@ import {
   X as CloseIcon,
   UserPlus,
   Key,
+  MessageCircle,
+  Palette,
 } from "lucide-react-native";
 import ChangePasswordModal from "./ChangePasswordModal";
 import { useTheme } from "../store/themeContext";
@@ -36,8 +38,17 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleChatPress = () => {
+    navigation.navigate("ChatPage");
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.navbar, borderBottomColor: theme.border }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.navbar, borderBottomColor: theme.border },
+      ]}
+    >
       <View style={[styles.navbar, { backgroundColor: theme.navbar }]}>
         {/* Logo and Title */}
         <TouchableOpacity
@@ -48,9 +59,11 @@ const Navbar = () => {
           <Text style={[styles.title, { color: theme.text }]}>Catstagram</Text>
         </TouchableOpacity>
 
-        {/* Theme Toggle and Menu */}
+        {/* Chat Button and Menu */}
         <View style={styles.rightContainer}>
-          <ThemeToggle />
+          <TouchableOpacity onPress={handleChatPress} style={styles.chatButton}>
+            <MessageCircle width={24} height={24} color={theme.text} />
+          </TouchableOpacity>
           <TouchableOpacity onPress={toggleMenu} style={styles.menuButton}>
             {isMenuOpen ? (
               <CloseIcon width={24} height={24} color={theme.text} />
@@ -63,7 +76,12 @@ const Navbar = () => {
 
       {/* Menu (Dropdown) */}
       {isMenuOpen && (
-        <View style={[styles.menu, { backgroundColor: theme.navbar, borderBottomColor: theme.border }]}>
+        <View
+          style={[
+            styles.menu,
+            { backgroundColor: theme.navbar, borderBottomColor: theme.border },
+          ]}
+        >
           <TouchableOpacity
             style={[styles.menuItem, { backgroundColor: theme.navbar }]}
             onPress={() => {
@@ -77,7 +95,9 @@ const Navbar = () => {
               color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={[styles.menuText, { color: theme.text }]}>My Friends</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>
+              My Friends
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -93,8 +113,24 @@ const Navbar = () => {
               color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={[styles.menuText, { color: theme.text }]}>Friend Requests</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>
+              Friend Requests
+            </Text>
           </TouchableOpacity>
+
+          {/* Theme Toggle Menu Item */}
+          <View style={[styles.menuItem, { backgroundColor: theme.navbar }]}>
+            <Palette
+              width={20}
+              height={20}
+              color={theme.text}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuText, { color: theme.text }]}>Theme</Text>
+            <View style={styles.themeToggleContainer}>
+              <ThemeToggle />
+            </View>
+          </View>
 
           <TouchableOpacity
             style={[styles.menuItem, { backgroundColor: theme.navbar }]}
@@ -109,7 +145,9 @@ const Navbar = () => {
               color={theme.text}
               style={styles.menuIcon}
             />
-            <Text style={[styles.menuText, { color: theme.text }]}>Change Password</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>
+              Change Password
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -177,7 +215,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
+  },
+  chatButton: {
+    padding: 8,
   },
   menuButton: {
     padding: 8,
@@ -202,6 +243,10 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     fontWeight: "500",
+    flex: 1,
+  },
+  themeToggleContainer: {
+    marginLeft: "auto",
   },
 });
 
