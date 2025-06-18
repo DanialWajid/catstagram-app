@@ -14,6 +14,7 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import { Camera, Check } from "lucide-react-native";
 import Animated, {
   useSharedValue,
@@ -43,29 +44,54 @@ const CreatePostForm = ({ navigation }) => {
   };
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      // Request permissions
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "We need camera roll permissions to upload images."
-      );
-      return;
-    }
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "We need camera roll permissions to upload images."
+        );
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8, // Good balance between quality and file size
+        base64: false,
+      });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      if (!result.canceled && result.assets[0]) {
+        const selectedImage = result.assets[0];
+
+        // Check file size (limit to 10MB)
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(selectedImage.uri);
+          if (fileInfo.size > 10 * 1024 * 1024) {
+            Alert.alert(
+              "File Too Large",
+              "Please select an image smaller than 10MB."
+            );
+            return;
+          }
+        } catch (fileError) {
+          console.log("Could not check file size:", fileError);
+        }
+
+        setImage(selectedImage.uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to select image. Please try again.");
     }
   };
 
   const handleSubmit = async () => {
+    // Validation
     if (!caption.trim()) {
       Alert.alert("Missing Information", "Please provide a caption.");
       return;
@@ -79,44 +105,95 @@ const CreatePostForm = ({ navigation }) => {
     setLoading(true);
 
     try {
+      // Create FormData properly
       const formData = new FormData();
-      formData.append("caption", caption);
+      formData.append("caption", caption.trim());
 
-      const filename = image.split("/").pop();
+      // Fix the image field name and MIME type
+      const filename = image.split("/").pop() || `post_${Date.now()}.jpg`;
       const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `profileImage/${match[1]}` : "profileImage";
+      const fileExtension = match ? match[1].toLowerCase() : "jpg";
 
-      formData.append("profileImage", {
+      // Correct MIME type
+      const mimeType = `image/${
+        fileExtension === "jpg" ? "jpeg" : fileExtension
+      }`;
+
+      formData.append("image", {
+        // Changed from "profileImage" to "image"
         uri: Platform.OS === "ios" ? image.replace("file://", "") : image,
         name: filename,
-        type,
+        type: mimeType, // Fixed MIME type
       });
 
+      console.log("Uploading post with image:", filename, "Type:", mimeType);
+
       const token = await SecureStore.getItemAsync("token");
+
+      if (!token) {
+        Alert.alert(
+          "Error",
+          "Authentication token not found. Please log in again."
+        );
+        return;
+      }
+
       const response = await axios.post(
-        "http://192.168.0.111:8000/api/posts",
+        "http://192.168.100.87:8000/api/posts", // Make sure this matches your backend endpoint
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
+          timeout: 60000, // 60 second timeout for large uploads
         }
       );
 
-      if (response.data.success) {
-        Alert.alert("Success", "Post created successfully!");
-        navigation.goBack();
+      console.log("Post creation response:", response.data);
+
+      if (
+        response.data.success ||
+        response.status === 200 ||
+        response.status === 201
+      ) {
+        Alert.alert("Success", "Post created successfully!", [
+          {
+            text: "OK",
+            onPress: () => {
+              // Clear form
+              setCaption("");
+              setImage(null);
+              // Navigate back
+              navigation.goBack();
+            },
+          },
+        ]);
       } else {
         Alert.alert("Error", response.data.message || "Failed to create post");
       }
     } catch (error) {
       console.error("Error creating post:", error);
-      Alert.alert(
-        "Error",
-        error.response?.data?.message ||
-          "An error occurred while creating the post."
-      );
+
+      let errorMessage = "An error occurred while creating the post.";
+
+      if (error.response) {
+        // Server responded with error
+        console.error("Server error:", error.response.data);
+        errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        // Network error
+        console.error("Network error:", error.request);
+        errorMessage = "Network error. Please check your internet connection.";
+      } else if (error.code === "ECONNABORTED") {
+        // Timeout error
+        errorMessage = "Upload timeout. Please try again with a smaller image.";
+      }
+
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -149,7 +226,11 @@ const CreatePostForm = ({ navigation }) => {
             value={caption}
             onChangeText={setCaption}
             multiline
+            maxLength={500} // Add character limit
           />
+          <Text style={[styles.characterCount, { color: theme.secondaryText }]}>
+            {caption.length}/500
+          </Text>
         </View>
 
         <View style={styles.inputContainer}>
@@ -164,6 +245,7 @@ const CreatePostForm = ({ navigation }) => {
               },
             ]}
             onPress={pickImage}
+            disabled={loading}
           >
             <Camera size={24} color={theme.text} />
             <Text style={[styles.imagePickerText, { color: theme.text }]}>
@@ -181,11 +263,20 @@ const CreatePostForm = ({ navigation }) => {
               <View
                 style={[
                   styles.imageSelectedIndicator,
-                  { backgroundColor: theme.success },
+                  { backgroundColor: theme.success || "#4CAF50" },
                 ]}
               >
                 <Check size={16} color="#ffffff" />
               </View>
+              <TouchableOpacity
+                style={[
+                  styles.removeImageButton,
+                  { backgroundColor: theme.error || "#F44336" },
+                ]}
+                onPress={() => setImage(null)}
+              >
+                <Text style={styles.removeImageText}>×</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -203,7 +294,12 @@ const CreatePostForm = ({ navigation }) => {
             onPressOut={handlePressOut}
           >
             {loading ? (
-              <ActivityIndicator size="small" color={theme.buttonText} />
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={theme.buttonText} />
+                <Text style={[styles.loadingText, { color: theme.buttonText }]}>
+                  Creating Post...
+                </Text>
+              </View>
             ) : (
               <Text
                 style={[styles.submitButtonText, { color: theme.buttonText }]}
@@ -256,6 +352,11 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: "top",
   },
+  characterCount: {
+    fontSize: 12,
+    textAlign: "right",
+    marginTop: 4,
+  },
   imagePickerButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -286,6 +387,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
   },
+  removeImageButton: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  removeImageText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
   buttonContainer: {
     marginTop: 8,
   },
@@ -299,6 +415,15 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginLeft: 8,
     fontSize: 16,
     fontWeight: "bold",
   },

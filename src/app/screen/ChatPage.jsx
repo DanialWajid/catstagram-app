@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -143,7 +141,13 @@ const ChatPage = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
 
-  const API_URL = "http://192.168.0.111:8000/api";
+  // Add scroll animation values
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const lastScrollY = useRef(0);
+  const navbarTranslateY = useRef(new Animated.Value(0)).current;
+  const isScrollingDown = useRef(false);
+
+  const API_URL = "http://192.168.0.110:8000/api";
 
   // Enhanced Socket Connection with better error handling and reconnection
   useEffect(() => {
@@ -336,6 +340,14 @@ const ChatPage = () => {
         console.log("Reconnecting socket on focus");
         SocketService.connect(user._id, user.name);
       }
+
+      // Reset navbar position when screen is focused
+      Animated.spring(navbarTranslateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 20,
+      }).start();
     }, [user])
   );
 
@@ -589,6 +601,44 @@ const ChatPage = () => {
     return "";
   };
 
+  // Handle scroll events to show/hide navbar
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: false,
+      listener: (event) => {
+        const currentScrollY = event.nativeEvent.contentOffset.y;
+
+        // Determine scroll direction
+        if (currentScrollY > lastScrollY.current + 5) {
+          // Scrolling down - hide navbar
+          if (!isScrollingDown.current) {
+            isScrollingDown.current = true;
+            Animated.spring(navbarTranslateY, {
+              toValue: 100, // Move navbar off screen
+              useNativeDriver: true,
+              tension: 100,
+              friction: 20,
+            }).start();
+          }
+        } else if (currentScrollY < lastScrollY.current - 5) {
+          // Scrolling up - show navbar
+          if (isScrollingDown.current) {
+            isScrollingDown.current = false;
+            Animated.spring(navbarTranslateY, {
+              toValue: 0, // Move navbar back to original position
+              useNativeDriver: true,
+              tension: 100,
+              friction: 20,
+            }).start();
+          }
+        }
+
+        lastScrollY.current = currentScrollY;
+      },
+    }
+  );
+
   // Create dynamic styles inside the component
   const dynamicStyles = {
     container: {
@@ -647,6 +697,16 @@ const ChatPage = () => {
       justifyContent: "center",
       borderWidth: 2,
       borderColor: theme.accent,
+    },
+    sideNavContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: theme.card,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      transform: [{ translateY: navbarTranslateY }],
     },
   };
 
@@ -883,6 +943,9 @@ const ChatPage = () => {
 
   const sections = prepareSectionData();
 
+  // Calculate the bottom padding to ensure content isn't hidden behind navbar
+  const navbarHeight = 60; // Approximate height of SideNav
+
   return (
     <View style={dynamicStyles.container}>
       <View style={dynamicStyles.header}>
@@ -921,7 +984,10 @@ const ChatPage = () => {
           renderItem={({ item, section }) => section.renderItem({ item })}
           renderSectionHeader={renderSectionHeader}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[
+            styles.listContainer,
+            { paddingBottom: navbarHeight + 20 }, // Add extra padding at bottom
+          ]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -931,6 +997,8 @@ const ChatPage = () => {
             />
           }
           stickySectionHeadersEnabled={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16} // For smooth animation
         />
       ) : (
         <View style={styles.emptyContainer}>
@@ -954,7 +1022,11 @@ const ChatPage = () => {
           )}
         </View>
       )}
-      <SideNav />
+
+      {/* Animated SideNav */}
+      <Animated.View style={dynamicStyles.sideNavContainer}>
+        <SideNav />
+      </Animated.View>
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { MessageCircle } from "lucide-react-native";
+import { ChevronUp } from "lucide-react-native"; // Changed from MessageCircle to ChevronUp
 import { useAuthStore } from "../../store/authStore";
 import SideNav from "../../components/SideNav";
 import Navbar from "../../components/Navbar";
@@ -27,10 +27,12 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false); // New state to control button visibility
   const { user } = useAuthStore();
   const { theme } = useTheme();
   const navigation = useNavigation();
-  const API_URL = "http://192.168.0.111:8000/api";
+  const flatListRef = useRef(null); // Reference to FlatList for scrolling
+  const API_URL = "http://192.168.0.110:8000/api";
   const LIMIT = 5;
 
   // Initial load
@@ -127,8 +129,19 @@ const Home = () => {
     await fetchInitialPosts();
   };
 
-  const handleChatPress = () => {
-    navigation.navigate("ChatPage");
+  // New function to handle scroll to top
+  const handleScrollToTop = () => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+      setShowScrollToTop(false); // Hide button after scrolling to top
+    }
+  };
+
+  // Handle scroll events to show/hide scroll to top button
+  const handleScroll = (event) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    // Show button when user has scrolled down more than 200 pixels
+    setShowScrollToTop(scrollY > 200);
   };
 
   // Create a truly unique key for each post
@@ -181,12 +194,15 @@ const Home = () => {
       </View>
 
       <FlatList
+        ref={flatListRef} // Add reference to FlatList
         data={posts}
         renderItem={renderPostItem}
         keyExtractor={getUniqueKey}
         contentContainerStyle={styles.listContainer}
         onEndReached={fetchMorePosts}
         onEndReachedThreshold={0.5}
+        onScroll={handleScroll} // Add scroll handler
+        scrollEventThrottle={16} // Throttle scroll events for better performance
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -211,20 +227,22 @@ const Home = () => {
         }
       />
 
-      {/* Floating Chat Button */}
-      <TouchableOpacity
-        style={[
-          styles.chatButton,
-          {
-            backgroundColor: theme.accent,
-            shadowColor: theme.accent,
-          },
-        ]}
-        onPress={handleChatPress}
-        activeOpacity={0.8}
-      >
-        <MessageCircle width={24} height={24} color={theme.buttonText} />
-      </TouchableOpacity>
+      {/* Scroll to Top Button - Only show when user has scrolled down */}
+      {showScrollToTop && (
+        <TouchableOpacity
+          style={[
+            styles.scrollToTopButton,
+            {
+              backgroundColor: theme.accent,
+              shadowColor: theme.accent,
+            },
+          ]}
+          onPress={handleScrollToTop}
+          activeOpacity={0.8}
+        >
+          <ChevronUp width={24} height={24} color={theme.buttonText} />
+        </TouchableOpacity>
+      )}
 
       <View style={styles.sideNavWrapper}>
         <SideNav />
@@ -278,7 +296,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  chatButton: {
+  scrollToTopButton: {
     position: "absolute",
     bottom: 100, // Clear of the bottom navigation
     right: 20,
