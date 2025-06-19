@@ -149,7 +149,9 @@ const Profile = () => {
 
                 <TouchableOpacity
                   style={styles.statItem}
-                  onPress={() => setShowFriendsModal(true)}
+                  onPress={() =>
+                    !profile.isPrivate && setShowFriendsModal(true)
+                  }
                 >
                   <Text style={[styles.statValue, { color: theme.text }]}>
                     {stats.friendsCount || 0}

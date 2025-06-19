@@ -33,7 +33,6 @@ const FriendsListModal = ({ isOpen, onClose, userId }) => {
     if (isOpen) {
       fetchFriends();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId]);
 
   const fetchFriends = async () => {
