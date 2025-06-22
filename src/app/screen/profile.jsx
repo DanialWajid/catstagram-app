@@ -150,7 +150,7 @@ const Profile = () => {
                 <TouchableOpacity
                   style={styles.statItem}
                   onPress={() =>
-                    !profile.isPrivate && setShowFriendsModal(true)
+                    (!profile.isPrivate && !isBlocked) && setShowFriendsModal(true)
                   }
                 >
                   <Text style={[styles.statValue, { color: theme.text }]}>
