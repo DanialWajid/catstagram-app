@@ -34,7 +34,7 @@ const GroupChatSettings = () => {
   const route = useRoute();
 
   const { chatId, chatData } = route.params;
-  const API_URL = "https://catstagram-backend.up.railway.app/api";
+  const API_URL = "https://catstagram-backend-production.up.railway.app/api";
 
   useEffect(() => {
     setGroupData(chatData);

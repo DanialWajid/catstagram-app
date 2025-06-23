@@ -20,7 +20,7 @@ const UserPosts = ({ userId, scrollEnabled = true }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    const API_URL = "https://catstagram-backend.up.railway.app";
+    const API_URL = "https://catstagram-backend-production.up.railway.app";
 
     const fetchUserPosts = async () => {
       try {

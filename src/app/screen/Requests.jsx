@@ -27,7 +27,7 @@ const Requests = () => {
   const { user } = useAuthStore();
   const { theme } = useTheme();
 
-  const API_URL = "https://catstagram-backend.up.railway.app";
+  const API_URL = "https://catstagram-backend-production.up.railway.app";
 
   useEffect(() => {
     fetchRequests();

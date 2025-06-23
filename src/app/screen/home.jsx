@@ -47,7 +47,7 @@ const Home = () => {
   const bottomNavOpacity = useRef(new Animated.Value(1)).current;
   const scrollPositionKey = `home_scroll_${user._id}`;
   const postsDataKey = `home_posts_${user._id}`;
-  const API_URL = "https://catstagram-backend.up.railway.app/api";
+  const API_URL = "https://catstagram-backend-production.up.railway.app/api";
   const LIMIT = 5;
 
   // Save scroll position

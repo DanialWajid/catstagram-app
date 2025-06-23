@@ -31,7 +31,7 @@ const EditPost = () => {
         }
 
         const response = await axios.get(
-          `https://catstagram-backend.up.railway.app/api/posts/edit/${id}`,
+          `https://catstagram-backend-production.up.railway.app/api/posts/edit/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

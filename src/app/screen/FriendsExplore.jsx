@@ -23,7 +23,7 @@ const FriendsExplore = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { theme } = useTheme();
 
-  const API_URL = "https://catstagram-backend.up.railway.app";
+  const API_URL = "https://catstagram-backend-production.up.railway.app";
 
   useEffect(() => {
     fetchPotentialFriends();

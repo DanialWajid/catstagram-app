@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://catstagram-backend.up.railway.app/api/liked-posts";
+const API_URL = "https://catstagram-backend-production.up.railway.app/api/liked-posts";
 
 export const likePost = async (userId, postId) => {
   try {

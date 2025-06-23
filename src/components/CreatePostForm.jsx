@@ -139,7 +139,7 @@ const CreatePostForm = ({ navigation }) => {
       }
 
       const response = await axios.post(
-        "https://catstagram-backend.up.railway.app/api/posts", // Make sure this matches your backend endpoint
+        "https://catstagram-backend-production.up.railway.app/api/posts", // Make sure this matches your backend endpoint
         formData,
         {
           headers: {

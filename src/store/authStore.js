@@ -14,7 +14,7 @@ const getApiUrl = () => {
   }
 
   // Physical device (replace with your computer's IP)
-  return "https://catstagram-backend.up.railway.app/api/user";
+  return "https://catstagram-backend-production.up.railway.app/api/user";
 };
 
 const API_URL = getApiUrl();

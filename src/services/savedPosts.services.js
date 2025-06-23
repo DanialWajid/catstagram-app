@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const API_URL = "https://catstagram-backend.up.railway.app/api/saved-posts";
+const API_URL = "https://catstagram-backend-production.up.railway.app/api/saved-posts";
 
 export const savePost = async (userId, postId) => {
   try {
